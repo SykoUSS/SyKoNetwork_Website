@@ -1,0 +1,1006 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import argSecrets from '@data/arg-secrets.json';
+
+export function getStaticPaths() {
+  return [{ params: { slug: argSecrets.showcaseSlug } }];
+}
+
+const showcaseFragments = argSecrets.showcaseFragments;
+const showcaseLore = argSecrets.showcaseLore;
+const showcaseFooterAscii = argSecrets.showcaseFooterAscii.replace(/\\n/g, '\n');
+const deepAccent = import.meta.env.PUBLIC_DEEP_ACCENT;
+---
+
+<BaseLayout title={import.meta.env.PUBLIC_SHOWCASE_TITLE} description="">
+  <div class={import.meta.env.PUBLIC_SHOWCASE_CLASS}>
+    <!-- Waveform audio visualizer background -->
+    <canvas id="visualizer" class="visualizer-canvas" aria-hidden="true"></canvas>
+
+    <!-- Scan lines -->
+    <div class="scan-lines" aria-hidden="true"></div>
+
+    <!-- Vignette -->
+    <div class="vignette" aria-hidden="true"></div>
+
+    <!-- Main content -->
+    <div class="showcase-content" id="showcase-content">
+      <!-- Phase 1: Title reveal -->
+      <section class="showcase-phase phase-title" id="phase-title">
+        <div class="title-container">
+          <div class="title-glitch-wrapper">
+            <h1 class="showcase-title">
+              <span class="glitch-layer glitch-base" data-text={import.meta.env.PUBLIC_SHOWCASE_HEADING}>{import.meta.env.PUBLIC_SHOWCASE_HEADING}</span>
+              <span class="glitch-layer glitch-cyan" data-text={import.meta.env.PUBLIC_SHOWCASE_HEADING} aria-hidden="true">{import.meta.env.PUBLIC_SHOWCASE_HEADING}</span>
+              <span class="glitch-layer glitch-magenta" data-text={import.meta.env.PUBLIC_SHOWCASE_HEADING} aria-hidden="true">{import.meta.env.PUBLIC_SHOWCASE_HEADING}</span>
+            </h1>
+          </div>
+          <p class="showcase-tagline">{import.meta.env.PUBLIC_SHOWCASE_TAGLINE}</p>
+          <div class="title-divider" aria-hidden="true"></div>
+          <p class="showcase-subtitle">{import.meta.env.PUBLIC_SHOWCASE_SUBTITLE}</p>
+        </div>
+      </section>
+
+      <!-- Phase 2: The Transmission -->
+      <section class="showcase-phase phase-transmission" id="phase-transmission">
+        <div class="transmission-header">
+          <h2 class="transmission-title">
+            <span class="tx-glitch" data-text={import.meta.env.PUBLIC_SHOWCASE_TX_TITLE}>{import.meta.env.PUBLIC_SHOWCASE_TX_TITLE}</span>
+          </h2>
+          <p class="transmission-meta">{import.meta.env.PUBLIC_SHOWCASE_TX_META}</p>
+        </div>
+
+        <div class="signal-grid">
+          {showcaseFragments.map((frag) => (
+            <div class={`signal-card${frag.glitched ? ' signal-card-full signal-card-glitched' : ''}`}>
+              <span class="sig-label">{frag.label}</span>
+              <span class={`sig-value${frag.glitched ? ' sig-glitch' : ''}`} data-text={frag.value}>{frag.value}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- Phase 3: Teaser -->
+      <section class="showcase-phase phase-teaser" id="phase-teaser">
+        <div class="teaser-container">
+          <div class="teaser-visual" aria-hidden="true">
+            <div class="teaser-orb">
+              <div class="orb-core"></div>
+              <div class="orb-ring orb-ring-1"></div>
+              <div class="orb-ring orb-ring-2"></div>
+              <div class="orb-ring orb-ring-3"></div>
+            </div>
+            <div class="teaser-particles" id="teaser-particles"></div>
+          </div>
+
+          <div class="teaser-content">
+            <h2 class="teaser-title">
+              <span class="teaser-glitch" data-text={import.meta.env.PUBLIC_SHOWCASE_TEASER_TITLE}>{import.meta.env.PUBLIC_SHOWCASE_TEASER_TITLE}</span>
+            </h2>
+            <div class="teaser-lore">
+              {showcaseLore.map((p) => (
+                <p>{p}</p>
+              ))}
+            </div>
+
+            <div class="teaser-stats">
+              <div class="stat">
+                <span class="stat-value" id="stat-countdown">???</span>
+                <span class="stat-label">DAYS UNTIL REVEAL</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">{import.meta.env.PUBLIC_SHOWCASE_STAT_ENGINE}</span>
+                <span class="stat-label">ENGINE</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">{import.meta.env.PUBLIC_SHOWCASE_STAT_DEPTH}</span>
+                <span class="stat-label">DEPTH</span>
+              </div>
+            </div>
+
+            <div class="teaser-cta">
+              <a
+                href="https://discord.gg/jksWxFn"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="teaser-button"
+              >
+                <span class="btn-icon" aria-hidden="true">⬡</span>
+                {import.meta.env.PUBLIC_SHOWCASE_CTA}
+                <span class="btn-icon" aria-hidden="true">⬡</span>
+              </a>
+              <p class="teaser-hint">{import.meta.env.PUBLIC_SHOWCASE_CTA_HINT}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Phase 4: Hidden footer -->
+      <section class="showcase-phase phase-footer" id="phase-footer">
+        <div class="footer-transmission">
+          <pre class="footer-ascii">{showcaseFooterAscii}</pre>
+        </div>
+        <p class="footer-sig">{argSecrets.showcaseSigId}</p>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style is:global>
+  /* ── Showcase Container ── */
+  .showcase-container {
+    position: relative;
+    min-height: 100vh;
+    background: #050510;
+    overflow-x: hidden;
+  }
+
+  /* ── Visualizer Canvas ── */
+  .visualizer-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Scan Lines ── */
+  .scan-lines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.04) 2px,
+      rgba(0, 0, 0, 0.04) 4px
+    );
+  }
+
+  /* ── Vignette ── */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(5, 5, 16, 0.7) 100%);
+  }
+
+  /* ── Content Wrapper ── */
+  .showcase-content {
+    position: relative;
+    z-index: 10;
+  }
+
+  /* ── Phase: Title ── */
+  .phase-title {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .title-container {
+    max-width: 800px;
+  }
+
+  .title-glitch-wrapper {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .showcase-title {
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    line-height: 1.1;
+  }
+
+  .glitch-layer {
+    display: block;
+  }
+
+  .glitch-base {
+    color: #fff;
+    text-shadow:
+      0 0 20px rgba(192, 38, 211, 0.8),
+      0 0 40px rgba(192, 38, 211, 0.5),
+      0 0 80px rgba(192, 38, 211, 0.3),
+      0 0 120px rgba(192, 38, 211, 0.15);
+    animation: title-flicker 6s infinite;
+  }
+
+  .glitch-cyan {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--color-cyan-light);
+    opacity: 0;
+    clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+    animation: title-cyan-slice 4s infinite;
+  }
+
+  .glitch-magenta {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: #ff2d95;
+    opacity: 0;
+    clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+    animation: title-magenta-slice 3.5s infinite;
+  }
+
+  @keyframes title-flicker {
+    0%, 92%, 94%, 96%, 100% { opacity: 1; }
+    93% { opacity: 0.8; text-shadow: 0 0 30px rgba(6, 182, 212, 0.9), 0 0 60px rgba(6, 182, 212, 0.4); }
+    95% { opacity: 0.9; text-shadow: 0 0 25px rgba(255, 45, 149, 0.8), 0 0 50px rgba(255, 45, 149, 0.3); }
+  }
+
+  @keyframes title-cyan-slice {
+    0%, 85%, 100% { opacity: 0; transform: translate(0); }
+    87% { opacity: 0.7; transform: translate(-6px, 2px); }
+    89% { opacity: 0; transform: translate(0); }
+    92% { opacity: 0.5; transform: translate(4px, -1px); }
+    94% { opacity: 0; transform: translate(0); }
+  }
+
+  @keyframes title-magenta-slice {
+    0%, 88%, 100% { opacity: 0; transform: translate(0); }
+    90% { opacity: 0.6; transform: translate(5px, -1px); }
+    92% { opacity: 0; transform: translate(0); }
+    95% { opacity: 0.7; transform: translate(-3px, 2px); }
+    97% { opacity: 0; transform: translate(0); }
+  }
+
+  .showcase-tagline {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.5em;
+    color: var(--color-cyan-light);
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+  }
+
+  .title-divider {
+    width: 120px;
+    height: 2px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(90deg, transparent, var(--color-neon), var(--color-cyan-light), transparent);
+  }
+
+  .showcase-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+    max-width: 500px;
+    margin: 0 auto;
+    opacity: 0.7;
+  }
+
+  /* ── Phase: Transmission ── */
+  .phase-transmission {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+  }
+
+  .transmission-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .transmission-title {
+    font-family: var(--font-mono);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.75rem;
+  }
+
+  .tx-glitch {
+    color: var(--color-neon-light);
+    text-shadow: 0 0 20px rgba(192, 38, 211, 0.5), 0 0 40px rgba(192, 38, 211, 0.2);
+    position: relative;
+    display: inline-block;
+  }
+
+  .tx-glitch::before,
+  .tx-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .tx-glitch::before {
+    color: var(--color-cyan-light);
+    animation: tx-slice-r 5s infinite;
+  }
+
+  .tx-glitch::after {
+    color: #ff2d95;
+    animation: tx-slice-b 4s infinite;
+  }
+
+  @keyframes tx-slice-r {
+    0%, 88%, 100% { opacity: 0; transform: translate(0); clip-path: inset(0 0 0 0); }
+    90% { opacity: 0.6; transform: translate(-4px, 1px); clip-path: inset(20% 0 60% 0); }
+    92% { opacity: 0; transform: translate(0); }
+  }
+
+  @keyframes tx-slice-b {
+    0%, 90%, 100% { opacity: 0; transform: translate(0); clip-path: inset(0 0 0 0); }
+    92% { opacity: 0.5; transform: translate(3px, -1px); clip-path: inset(55% 0 25% 0); }
+    94% { opacity: 0; transform: translate(0); }
+  }
+
+  .transmission-meta {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--color-text-muted);
+    opacity: 0.6;
+  }
+
+  /* ── Signal Grid ── */
+  .signal-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+    max-width: 700px;
+    width: 100%;
+  }
+
+  .signal-card {
+    background: rgba(14, 14, 22, 0.8);
+    border: 1px solid rgba(192, 38, 211, 0.12);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    transition: all 0.3s ease;
+  }
+
+  .signal-card:hover {
+    border-color: rgba(192, 38, 211, 0.3);
+    box-shadow: 0 0 20px rgba(192, 38, 211, 0.08);
+    transform: translateY(-1px);
+  }
+
+  .signal-card-full {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
+  .sig-label {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+  }
+
+  .sig-value {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-neon-light);
+    letter-spacing: 0.05em;
+    word-break: break-all;
+  }
+
+  .signal-card-full .sig-value {
+    color: var(--color-cyan-light);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  /* Glitched decoder name — unreadable RGB corruption */
+  .signal-card-glitched {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sig-glitch {
+    position: relative;
+    display: inline-block;
+    color: var(--color-neon-light);
+    animation: sig-flicker 0.8s infinite;
+  }
+
+  .sig-glitch::before,
+  .sig-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    overflow: hidden;
+  }
+
+  .sig-glitch::before {
+    color: var(--color-cyan-light);
+    z-index: -1;
+    animation: sig-slice-r 0.3s infinite steps(3);
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 40%);
+  }
+
+  .sig-glitch::after {
+    color: #ff2d95;
+    z-index: -2;
+    animation: sig-slice-b 0.25s infinite steps(2);
+    clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
+  }
+
+  @keyframes sig-flicker {
+    0%, 70%, 100% { opacity: 1; }
+    72% { opacity: 0.4; }
+    74% { opacity: 0.9; }
+    76% { opacity: 0.3; }
+    78% { opacity: 1; }
+    85% { opacity: 0.6; }
+    87% { opacity: 1; }
+  }
+
+  @keyframes sig-slice-r {
+    0%   { transform: translate(0); }
+    33%  { transform: translate(-5px, 2px); }
+    66%  { transform: translate(4px, -1px); }
+    100% { transform: translate(0); }
+  }
+
+  @keyframes sig-slice-b {
+    0%   { transform: translate(0); }
+    50%  { transform: translate(3px, -2px); }
+    100% { transform: translate(0); }
+  }
+
+  /* ── Phase: Teaser ── */
+  .phase-teaser {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+  }
+
+  .teaser-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .teaser-container {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  /* ── Teaser Visual (Orb) ── */
+  .teaser-visual {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    flex-shrink: 0;
+  }
+
+  .teaser-orb {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .orb-core {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(192, 38, 211, 0.9), rgba(134, 25, 143, 0.6));
+    box-shadow:
+      0 0 30px rgba(192, 38, 211, 0.6),
+      0 0 60px rgba(192, 38, 211, 0.3),
+      0 0 100px rgba(192, 38, 211, 0.15);
+    animation: orb-pulse 3s ease-in-out infinite;
+  }
+
+  .orb-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(192, 38, 211, 0.2);
+    animation: orb-spin linear infinite;
+  }
+
+  .orb-ring-1 {
+    width: 120px;
+    height: 120px;
+    border-color: rgba(192, 38, 211, 0.3);
+    animation-duration: 8s;
+  }
+
+  .orb-ring-2 {
+    width: 180px;
+    height: 180px;
+    border-color: rgba(6, 182, 212, 0.2);
+    animation-duration: 12s;
+    animation-direction: reverse;
+  }
+
+  .orb-ring-3 {
+    width: 240px;
+    height: 240px;
+    border-color: rgba(192, 38, 211, 0.1);
+    animation-duration: 16s;
+  }
+
+  @keyframes orb-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.15); opacity: 1; }
+  }
+
+  @keyframes orb-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .teaser-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* ── Teaser Content ── */
+  .teaser-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .teaser-title {
+    font-family: var(--font-mono);
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    margin-bottom: 1.5rem;
+    line-height: 1.3;
+  }
+
+  .teaser-glitch {
+    color: #fff;
+    text-shadow: 0 0 15px rgba(192, 38, 211, 0.5);
+    position: relative;
+    display: inline-block;
+  }
+
+  .teaser-glitch::before,
+  .teaser-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    overflow: hidden;
+    opacity: 0;
+  }
+
+  .teaser-glitch::before {
+    color: var(--color-cyan-light);
+    animation: teaser-slice-r 6s infinite;
+  }
+
+  .teaser-glitch::after {
+    color: #ff2d95;
+    animation: teaser-slice-b 5s infinite;
+  }
+
+  @keyframes teaser-slice-r {
+    0%, 90%, 100% { opacity: 0; transform: translate(0); }
+    92% { opacity: 0.5; transform: translate(-3px, 1px); clip-path: inset(10% 0 70% 0); }
+    94% { opacity: 0; transform: translate(0); }
+  }
+
+  @keyframes teaser-slice-b {
+    0%, 91%, 100% { opacity: 0; transform: translate(0); }
+    93% { opacity: 0.4; transform: translate(2px, -1px); clip-path: inset(60% 0 20% 0); }
+    95% { opacity: 0; transform: translate(0); }
+  }
+
+  .teaser-lore {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.9;
+    color: var(--color-text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  .teaser-lore p {
+    margin-bottom: 0.75rem;
+  }
+
+  .teaser-lore p:first-child {
+    color: var(--color-neon-light);
+    font-weight: 600;
+  }
+
+  /* ── Stats ── */
+  .teaser-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--color-neon-light);
+    text-shadow: 0 0 10px rgba(192, 38, 211, 0.3);
+  }
+
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+  }
+
+  /* ── CTA ── */
+  .teaser-cta {
+    text-align: center;
+  }
+
+  .teaser-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #fff;
+    background: var(--color-neon);
+    padding: 1rem 2.5rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 30px rgba(192, 38, 211, 0.3), 0 0 60px rgba(192, 38, 211, 0.1);
+    border: 1px solid rgba(192, 38, 211, 0.4);
+  }
+
+  .teaser-button:hover {
+    background: var(--color-neon-light);
+    box-shadow: 0 0 40px rgba(192, 38, 211, 0.5), 0 0 80px rgba(192, 38, 211, 0.2);
+    transform: scale(1.05);
+  }
+
+  .btn-icon {
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .teaser-hint {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    margin-top: 1rem;
+    letter-spacing: 0.1em;
+    opacity: 0.5;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── Phase: Footer ── */
+  .phase-footer {
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .footer-transmission {
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-ascii {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    line-height: 1.6;
+    color: rgba(192, 38, 211, 0.4);
+    background: rgba(8, 8, 13, 0.6);
+    border: 1px solid rgba(192, 38, 211, 0.08);
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    display: inline-block;
+    text-align: left;
+    white-space: pre;
+  }
+
+  @media (min-width: 640px) {
+    .footer-ascii {
+      font-size: 0.7rem;
+      padding: 1.5rem 2rem;
+    }
+  }
+
+  .footer-sig {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--color-dark-border-light);
+    opacity: 0.5;
+  }
+</style>
+
+<script define:vars={{ deepAccent }}>
+  // ── Complex Waveform Audio Visualizer ──
+  // Simulates a multi-band frequency analyzer + oscilloscope
+  void deepAccent;
+  function initVisualizer() {
+    const canvas = document.getElementById('visualizer');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId = null;
+    let lastFrame = 0;
+    const FRAME_INTERVAL = 33; // ~30fps
+
+    // Frequency bands — simulated spectrum analyzer
+    const BANDS = 64;
+    const bandValues = new Float64Array(BANDS);
+    const bandTargets = new Float64Array(BANDS);
+
+    // Layered waveforms
+    const layers = [
+      { freq: 0.003, amp: 0.7,  speed: 0.4,  phase: 0,     color: '#c026d3', alpha: 0.25 },
+      { freq: 0.007, amp: 0.5,  speed: 0.6,  phase: 1.2,   color: '#d946ef', alpha: 0.2 },
+      { freq: 0.013, amp: 0.35, speed: 0.9,  phase: 2.5,   color: '#06b6d4', alpha: 0.18 },
+      { freq: 0.021, amp: 0.25, speed: 1.3,  phase: 4.0,   color: '#22d3ee', alpha: 0.15 },
+      { freq: 0.002, amp: 0.9,  speed: 0.25, phase: 3.14,  color: deepAccent, alpha: 0.12 },
+    ];
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+
+    function updateBands(time) {
+      // Generate synthetic frequency spectrum — bass-heavy with evolving harmonics
+      for (let i = 0; i < BANDS; i++) {
+        const norm = i / BANDS;
+        // Low frequencies (bass) pulse with the slowest wave
+        const bass = 0.6 + 0.4 * Math.sin(time * 0.3 + norm * Math.PI);
+        // Mid frequencies evolve with multiple harmonics
+        const mid = 0.4 + 0.3 * Math.sin(time * 0.7 + norm * 3) * Math.cos(time * 0.5 + norm * 2);
+        // High frequencies shimmer
+        const high = 0.2 + 0.15 * Math.sin(time * 1.5 + norm * 5) * Math.cos(time * 1.1 + norm * 7);
+        // Combine with frequency weighting
+        const weight = norm < 0.2 ? bass : norm < 0.6 ? mid : high;
+        bandTargets[i] = weight * (0.3 + 0.7 * Math.abs(Math.sin(time * 0.4 + norm * Math.PI * 2)));
+      }
+      // Smooth interpolation toward targets
+      for (let i = 0; i < BANDS; i++) {
+        bandValues[i] += (bandTargets[i] - bandValues[i]) * 0.15;
+      }
+    }
+
+    function draw(timestamp) {
+      const W = canvas.width / (Math.min(window.devicePixelRatio || 1, 2));
+      const H = canvas.height / (Math.min(window.devicePixelRatio || 1, 2));
+      const t = timestamp * 0.001;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // ── 1. Layered background waveforms ──
+      for (const layer of layers) {
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.5);
+        for (let x = 0; x <= W; x += 2) {
+          const norm = x / W;
+          let y = H * 0.5;
+          y += Math.sin(norm * Math.PI * 2 * layer.freq * 100 + t * layer.speed + layer.phase) * H * 0.3 * layer.amp;
+          y += Math.sin(norm * Math.PI * 2 * layer.freq * 200 + t * layer.speed * 1.4) * H * 0.15 * layer.amp;
+          y += Math.sin(norm * Math.PI * 2 * layer.freq * 50 + t * layer.speed * 0.6 + 2) * H * 0.1 * layer.amp;
+          ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = layer.color;
+        ctx.globalAlpha = layer.alpha;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      // ── 2. Frequency spectrum bars (bottom) ──
+      const barAreaH = H * 0.22;
+      const barAreaY = H - barAreaH;
+      const barW = (W * 0.85) / BANDS;
+      const barGap = barW * 0.15;
+      const barStartX = (W - (barW + barGap) * BANDS) * 0.5;
+
+      for (let i = 0; i < BANDS; i++) {
+        const h = bandValues[i] * barAreaH * 0.9;
+        const x = barStartX + i * (barW + barGap);
+        const y = barAreaY + barAreaH - h;
+
+        // Gradient from bottom to top
+        const grad = ctx.createLinearGradient(x, barAreaY + barAreaH, x, y);
+        const norm = i / BANDS;
+        if (norm < 0.3) {
+          grad.addColorStop(0, 'rgba(192, 38, 211, 0.6)');
+          grad.addColorStop(0.5, 'rgba(217, 70, 239, 0.4)');
+          grad.addColorStop(1, 'rgba(232, 121, 249, 0.15)');
+        } else if (norm < 0.6) {
+          grad.addColorStop(0, 'rgba(134, 25, 143, 0.5)');
+          grad.addColorStop(0.5, 'rgba(192, 38, 211, 0.3)');
+          grad.addColorStop(1, 'rgba(217, 70, 239, 0.1)');
+        } else {
+          grad.addColorStop(0, 'rgba(6, 182, 212, 0.4)');
+          grad.addColorStop(0.5, 'rgba(34, 211, 238, 0.25)');
+          grad.addColorStop(1, 'rgba(103, 232, 249, 0.08)');
+        }
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(x, y, barW, h);
+
+        // Subtle glow on taller bars
+        if (h > barAreaH * 0.4) {
+          ctx.fillStyle = norm < 0.6
+            ? 'rgba(192, 38, 211, 0.08)'
+            : 'rgba(6, 182, 212, 0.06)';
+          ctx.fillRect(x, y - 2, barW, 4);
+        }
+      }
+
+      animId = requestAnimationFrame(draw);
+    }
+
+    function animate(timestamp) {
+      if (timestamp - lastFrame < FRAME_INTERVAL) {
+        animId = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrame = timestamp;
+      const t = timestamp * 0.001;
+      updateBands(t);
+      draw(timestamp);
+    }
+
+    resize();
+    animId = requestAnimationFrame(animate);
+
+    window.addEventListener('resize', resize);
+
+    document.addEventListener('astro:before-swap', () => {
+      if (animId) cancelAnimationFrame(animId);
+    });
+  }
+
+  // ── Teaser Particles ──
+  function initTeaserParticles() {
+    const container = document.getElementById('teaser-particles');
+    if (!container) return;
+
+    const particles = [];
+    const MAX = 30;
+
+    for (let i = 0; i < MAX; i++) {
+      const p = document.createElement('div');
+      p.style.cssText = `
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background: ${i % 3 === 0 ? 'var(--color-cyan-light)' : 'var(--color-neon-light)'};
+        opacity: 0;
+        pointer-events: none;
+      `;
+      container.appendChild(p);
+      particles.push({
+        el: p,
+        x: 140 + Math.random() * 20 - 10,
+        y: 140 + Math.random() * 20 - 10,
+        angle: Math.random() * Math.PI * 2,
+        speed: 0.3 + Math.random() * 0.7,
+        radius: 80 + Math.random() * 100,
+        life: Math.random(),
+        lifeSpeed: 0.003 + Math.random() * 0.008,
+      });
+    }
+
+    let animId = null;
+
+    function animate(timestamp) {
+      for (const p of particles) {
+        p.life += p.lifeSpeed;
+        if (p.life > 1) p.life = 0;
+
+        const angle = p.angle + timestamp * 0.0005 * p.speed;
+        const r = p.radius + Math.sin(timestamp * 0.002 + p.angle) * 20;
+        const x = p.x + Math.cos(angle) * r;
+        const y = p.y + Math.sin(angle) * r;
+
+        const alpha = p.life < 0.5 ? p.life * 2 : (1 - p.life) * 2;
+        p.el.style.transform = `translate(${x}px, ${y}px)`;
+        p.el.style.opacity = alpha * 0.6;
+      }
+
+      animId = requestAnimationFrame(animate);
+    }
+
+    animId = requestAnimationFrame(animate);
+
+    document.addEventListener('astro:before-swap', () => {
+      if (animId) cancelAnimationFrame(animId);
+    });
+  }
+
+  // ── Countdown ──
+  function initCountdown() {
+    const el = document.getElementById('stat-countdown');
+    if (!el) return;
+    // Cryptic countdown — days until a significant date
+    const target = new Date('2026-07-13T00:00:00Z');
+    const now = new Date();
+    const diff = Math.max(0, Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    el.textContent = diff <= 0 ? 'NOW' : String(diff);
+  }
+
+  // ── Init all ──
+  initVisualizer();
+  initTeaserParticles();
+  initCountdown();
+
+  document.addEventListener('astro:after-swap', () => {
+    initVisualizer();
+    initTeaserParticles();
+    initCountdown();
+  });
+</script>

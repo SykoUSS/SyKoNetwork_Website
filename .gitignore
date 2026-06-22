@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables (contains secrets)
+.env
+.env.local
+.env.*.local
+
+# ARG secrets (never commit — contains all ARG fragment values)
+src/data/arg-secrets.json
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ignore certain image files
+public/images/patreon*
+
+# Certain data files
+src/data/site-config.json
+src/data/arg-secrets.json
+src/data/arg-secrets.example.json
+src/data/patreon-posts.json
+src/data/projects.json
+src/data/social-links.json
+
+# ARG documentation (never commit)
+ARG.md
+.astro/
+
+# Logs
+*.log
+
+# Ignore the README.md file
+README.md
+
+# Ignore the ARG.md file
+ARG.md
+
+# Godot Web export files — game.html/game.manifest.json/game.service.worker.js are committed;
+# other Godot assets (index.js, index.wasm, index.pck, etc.) are copied via scripts/copy-game.js

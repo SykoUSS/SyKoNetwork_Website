@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /restricted/
+
+Sitemap: https://syko.network/sitemap-index.xml

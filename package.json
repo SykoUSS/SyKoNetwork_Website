@@ -1,0 +1,24 @@
+{
+  "name": "sykonetwork-website",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "SyKoNetwork — Indie Game Developer website for SyKoSoFi",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/generate-robots.js && node scripts/generate-favicon-svg.js && astro build",
+    "preview": "astro preview",
+    "fetch-patreon": "node scripts/fetch-patreon.js",
+    "extract-patreon-images": "node scripts/extract-patreon-images.js",
+    "fetch-project-images": "node scripts/fetch-project-images.js",
+    "generate-favicon": "node scripts/generate-favicon-svg.js"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.4.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "astro": "^5.7.0",
+    "tailwindcss": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}

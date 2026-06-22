@@ -1,0 +1,32 @@
+---
+export interface Props {
+  title: string;
+  subtitle?: string;
+  variant?: 'default' | 'legacy';
+}
+
+const { title, subtitle, variant = 'default' } = Astro.props;
+const isLegacy = variant === 'legacy';
+---
+
+<div class="mb-8">
+  <div class="flex items-center gap-3 mb-2">
+    <h2 class={`text-2xl sm:text-3xl font-bold tracking-tight ${isLegacy ? 'text-legacy-text' : 'text-text-primary'}`}>
+      {title}
+    </h2>
+    {isLegacy && (
+      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-legacy-badge-bg text-legacy-badge-text border border-legacy-border/50">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+        </svg>
+        ARCHIVE
+      </span>
+    )}
+  </div>
+  {subtitle && (
+    <p class={`text-sm mb-4 ${isLegacy ? 'text-legacy-text/60' : 'text-text-muted'}`}>
+      {subtitle}
+    </p>
+  )}
+  <hr class={isLegacy ? 'section-divider-legacy' : 'section-divider'} />
+</div>

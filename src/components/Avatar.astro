@@ -1,0 +1,45 @@
+---
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const avatars = [
+  `${basePath}/images/avatar/pack_icon.png`,       // 0 — default (common)
+  `${basePath}/images/avatar/uwu_pack_icon.png`,   // 1 — rare
+  `${basePath}/images/avatar/pack_icon_wink.png`, // 2 — rare
+];
+
+// Weighted random selection: pack_icon ~80%, rare ~10% each
+const weights = [0.80, 0.01, 0.01];
+const roll = Math.random();
+let cumulative = 0;
+let chosenSrc = avatars[0];
+for (let i = 0; i < weights.length; i++) {
+  cumulative += weights[i];
+  if (roll < cumulative) {
+    chosenSrc = avatars[i];
+    break;
+  }
+}
+
+export interface Props {
+  size?: 'sm' | 'md' | 'lg';
+  class?: string;
+}
+
+const { size = 'md', class: className = '' } = Astro.props;
+
+const sizeMap = {
+  sm: { container: 'h-9 w-9', px: 36 },
+  md: { container: 'h-16 w-16', px: 64 },
+  lg: { container: 'h-28 w-28 sm:h-32 sm:w-32', px: 128 },
+};
+
+const dims = sizeMap[size];
+---
+
+<img
+  src={chosenSrc}
+  alt="SyKoSoFi avatar"
+  width={dims.px}
+  height={dims.px}
+  class={`rounded-full object-cover ${dims.container} ${className}`}
+/>

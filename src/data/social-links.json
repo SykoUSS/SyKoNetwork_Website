@@ -1,0 +1,32 @@
+[
+  {
+    "platform": "Discord",
+    "url": "https://discord.gg/jksWxFn",
+    "icon": "discord"
+  },
+  {
+    "platform": "Patreon",
+    "url": "https://www.patreon.com/SyKoSoFi/home",
+    "icon": "patreon"
+  },
+  {
+    "platform": "CurseForge",
+    "url": "https://www.curseforge.com/members/sykosofi/projects",
+    "icon": "curseforge"
+  },
+  {
+    "platform": "YouTube",
+    "url": "https://youtube.com/@SyKoNetwork",
+    "icon": "youtube"
+  },
+  {
+    "platform": "Twitch",
+    "url": "https://twitch.tv/sykosofi",
+    "icon": "twitch"
+  },
+  {
+    "platform": "Instagram",
+    "url": "https://www.instagram.com/sofiasykotik",
+    "icon": "instagram"
+  }
+]

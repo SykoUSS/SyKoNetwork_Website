@@ -1,0 +1,211 @@
+---
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+export interface Project {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  link: string;
+  linkLabel: string;
+  status: 'active' | 'legacy' | 'coming-soon';
+  tags: string[];
+}
+
+export interface Props {
+  project: Project;
+  variant?: 'default' | 'featured';
+  index?: number;
+}
+
+const { project, variant = 'default', index = 0 } = Astro.props;
+const isReversed = index % 2 === 1;
+
+// Prepend base path for local images
+const thumbnailSrc = project.thumbnail?.startsWith('/') ? `${basePath}${project.thumbnail}` : project.thumbnail;
+const isLegacy = project.status === 'legacy';
+const isComingSoon = project.status === 'coming-soon';
+const isFeatured = variant === 'featured';
+---
+
+{isFeatured ? (
+  <!-- Full-width featured card -->
+  <article
+    class={`group rounded-2xl overflow-hidden border transition-all duration-300 hover:border-neon/40 neon-border ${
+      isLegacy
+        ? 'bg-legacy-card border-legacy-border'
+        : 'bg-dark-card border-dark-border'
+    }`}
+  >
+    <div class={`flex flex-col lg:flex-row ${isReversed ? 'lg:flex-row-reverse' : ''}`}>
+      <!-- Thumbnail — large on featured -->
+      <div class="relative lg:w-1/2 aspect-video lg:aspect-auto overflow-hidden">
+        <img
+          src={thumbnailSrc}
+          alt={`${project.title} thumbnail`}
+          class={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+            isLegacy ? 'opacity-50 grayscale-[70%] brightness-[0.65] contrast-[1.15]' : ''
+          }`}
+          loading="lazy"
+          width="800"
+          height="450"
+        />
+        <!-- Gradient overlay for text readability -->
+        <div class={`absolute inset-0 bg-gradient-to-t from-dark-bg/60 via-transparent to-transparent lg:bg-gradient-to-r ${isReversed ? 'lg:from-dark-bg/40 lg:via-transparent lg:to-transparent' : 'lg:from-transparent lg:via-transparent lg:to-dark-bg/40'}`}></div>
+        <!-- Status Badge -->
+        <div class="absolute top-4 left-4">
+          {isLegacy ? (
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-legacy-badge-bg text-legacy-badge-text border border-legacy-border/50">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+              </svg>
+              ARCHIVED
+            </span>
+          ) : isComingSoon ? (
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-coming-soon/20 text-coming-soon border border-coming-soon/30">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              COMING SOON
+            </span>
+          ) : (
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-active/20 text-active border border-active/30">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              ACTIVE
+            </span>
+          )}
+        </div>
+      </div>
+
+      <!-- Content — spacious on featured -->
+      <div class="flex-1 p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+        <h3 class={`text-2xl sm:text-3xl font-bold mb-3 ${isLegacy ? 'text-legacy-text' : 'text-text-primary group-hover:text-neon-light transition-colors'}`}>
+          {project.title}
+        </h3>
+        <p class={`text-base mb-6 leading-relaxed ${isLegacy ? 'text-legacy-text/70' : 'text-text-secondary'}`}>
+          {project.description}
+        </p>
+
+        <!-- Tags -->
+        <div class="flex flex-wrap gap-2 mb-6">
+          {project.tags.map((tag) => (
+            <span class={`px-3 py-1 rounded-full text-sm font-medium ${
+              isLegacy
+                ? 'bg-legacy-bg text-legacy-text/60 border border-legacy-border/30'
+                : 'bg-dark-surface text-text-muted border border-dark-border'
+            }`}>
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        <!-- Link -->
+        <a
+          href={project.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          class={`inline-flex items-center gap-2 text-base font-semibold transition-colors ${
+            isLegacy
+              ? 'text-legacy-text hover:text-legacy-badge-text'
+              : 'text-neon-light hover:text-neon-glow'
+          }`}
+        >
+          {project.linkLabel}
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+) : (
+  <!-- Default compact card -->
+  <article
+    class={`group rounded-xl overflow-hidden border transition-all duration-300 hover:scale-[1.02] ${
+      isLegacy
+        ? 'bg-legacy-card border-legacy-border hover:border-legacy-text/50'
+        : 'bg-dark-card border-dark-border hover:border-neon/30 neon-border'
+    }`}
+  >
+    <!-- Thumbnail -->
+    <div class="relative aspect-video overflow-hidden">
+      <img
+        src={thumbnailSrc}
+        alt={`${project.title} thumbnail`}
+        class={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+          isLegacy ? 'opacity-50 grayscale-[70%] brightness-[0.65] contrast-[1.15]' : ''
+        }`}
+        loading="lazy"
+        width="400"
+        height="240"
+      />
+      <!-- Status Badge -->
+      <div class="absolute top-3 left-3">
+        {isLegacy ? (
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-legacy-badge-bg text-legacy-badge-text border border-legacy-border/50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+            ARCHIVED
+          </span>
+        ) : isComingSoon ? (
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-coming-soon/20 text-coming-soon border border-coming-soon/30">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            COMING SOON
+          </span>
+        ) : (
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-active/20 text-active border border-active/30">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            ACTIVE
+          </span>
+        )}
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="p-5">
+      <h3 class={`text-lg font-bold mb-2 ${isLegacy ? 'text-legacy-text' : 'text-text-primary group-hover:text-neon-light transition-colors'}`}>
+        {project.title}
+      </h3>
+      <p class={`text-sm mb-4 line-clamp-3 ${isLegacy ? 'text-legacy-text/70' : 'text-text-secondary'}`}>
+        {project.description}
+      </p>
+
+      <!-- Tags -->
+      <div class="flex flex-wrap gap-1.5 mb-4">
+        {project.tags.map((tag) => (
+          <span class={`px-2 py-0.5 rounded text-xs font-medium ${
+            isLegacy
+              ? 'bg-legacy-bg text-legacy-text/60 border border-legacy-border/30'
+              : 'bg-dark-surface text-text-muted border border-dark-border'
+          }`}>
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <!-- Link -->
+      <a
+        href={project.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        class={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+          isLegacy
+            ? 'text-legacy-text hover:text-legacy-badge-text'
+            : 'text-neon-light hover:text-neon-glow'
+        }`}
+      >
+        {project.linkLabel}
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    </div>
+  </article>
+)}

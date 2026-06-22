@@ -1,0 +1,61 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import SectionHeader from '@components/SectionHeader.astro';
+import ProjectCard from '@components/ProjectCard.astro';
+import projects from '@data/projects.json';
+import config from '@data/site-config.json';
+
+const activeProjects = projects.filter((p) => p.status === 'active' || p.status === 'coming-soon');
+const legacyProjects = projects.filter((p) => p.status === 'legacy');
+---
+
+<BaseLayout title="Projects" description={`Game projects by ${config.siteName} — current indie games and legacy Minecraft addons.`}>
+  <div class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <!-- Page Title -->
+    <div class="text-center mb-16">
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">
+        <span class="neon-glow">Projects</span>
+      </h1>
+      <p class="text-text-muted text-lg max-w-2xl mx-auto">
+        From Minecraft Bedrock addons to new indie game adventures — explore what SyKoNetwork has built.
+      </p>
+    </div>
+
+    <!-- Current Projects -->
+    <section class="mb-20">
+      <SectionHeader
+        title="Current Projects"
+        subtitle="New indie game projects in development"
+      />
+      {activeProjects.length > 0 ? (
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
+          {activeProjects.map((project) => (
+            <ProjectCard project={project} />
+          ))}
+        </div>
+      ) : (
+        <div class="text-center py-16 bg-dark-card rounded-xl border border-dark-border">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-neon-dim mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+          </svg>
+          <p class="text-text-muted text-lg">Something new is brewing...</p>
+          <p class="text-text-muted text-sm mt-2">New non-Minecraft projects are in the works. Follow on <a href={config.patreonUrl} class="text-neon-light hover:text-neon-glow">Patreon</a> for announcements!</p>
+        </div>
+      )}
+    </section>
+
+    <!-- Legacy / Minecraft Archive -->
+    <section class="bg-legacy-bg/30 rounded-2xl p-6 sm:p-10 border border-legacy-border/30">
+      <SectionHeader
+        title="Legacy / Minecraft Archive"
+        subtitle="These Minecraft Bedrock addons are no longer actively developed but remain available for the community."
+        variant="legacy"
+      />
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
+        {legacyProjects.map((project) => (
+          <ProjectCard project={project} />
+        ))}
+      </div>
+    </section>
+  </div>
+</BaseLayout>

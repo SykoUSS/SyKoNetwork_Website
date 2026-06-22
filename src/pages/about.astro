@@ -1,0 +1,65 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import SocialLinks from '@components/SocialLinks.astro';
+import Avatar from '@components/Avatar.astro';
+import config from '@data/site-config.json';
+---
+
+<BaseLayout title="About" description={`About ${config.developerName} — indie game developer and creator of ${config.siteName}.`}>
+  <div class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+    <!-- Avatar + Name -->
+    <div class="text-center mb-12">
+      <Avatar size="lg" class="ring-2 ring-neon/50 neon-border mx-auto mb-6" />
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-2">
+        <span class="neon-glow">{config.developerName}</span>
+      </h1>
+      <p class="text-text-muted text-lg">{config.tagline}</p>
+    </div>
+
+    <!-- Bio -->
+    <div class="bg-dark-card border border-dark-border rounded-xl p-6 sm:p-8 mb-10">
+      <h2 class="text-xl font-bold text-text-primary mb-4">The Story So Far</h2>
+      <div class="prose prose-invert max-w-none text-text-secondary space-y-4 leading-relaxed">
+        <p>
+          <strong class="text-text-primary">{config.developerName}</strong> (Sofia) is an indie game developer and the creator behind <strong class="text-neon-light">{config.siteName}</strong> — a studio building unique gaming experiences.
+        </p>
+        <p>
+          Previously known for creating popular <strong class="text-text-primary">Minecraft Bedrock addons</strong> — including Ender Elevators, Dungeon Expanse, Better Guns, and many more — {config.siteName} built a community of over <strong class="text-text-primary">3,300 members</strong> on Patreon and thousands of downloads across CurseForge.
+        </p>
+        <p>
+          Now, {config.siteName} is transitioning into a new chapter: <strong class="text-neon-light">original indie game development</strong>. While the Minecraft addons remain available as a legacy archive, the focus has shifted toward creating fresh, standalone gaming experiences.
+        </p>
+        <p>
+          Stay tuned — exciting things are on the horizon. Follow {config.developerName} on social media and Patreon to be the first to know about new projects.
+        </p>
+      </div>
+    </div>
+
+    <!-- Transition Highlight -->
+    <div class="bg-dark-surface border border-dark-border rounded-xl p-6 sm:p-8 mb-10">
+      <h2 class="text-xl font-bold text-text-primary mb-4">From Minecraft to Indie Games</h2>
+      <div class="flex flex-col sm:flex-row gap-6 items-center">
+        <div class="shrink-0 text-center p-4 bg-legacy-card rounded-lg border border-legacy-border/30">
+          <span class="text-legacy-badge-text text-sm font-semibold">LEGACY</span>
+          <p class="text-legacy-text text-xs mt-1">Minecraft Bedrock<br/>Addons (2020–2024)</p>
+        </div>
+        <div class="text-neon-light text-2xl">→</div>
+        <div class="shrink-0 text-center p-4 bg-dark-card rounded-lg border border-neon/30 neon-border">
+          <span class="text-neon-light text-sm font-semibold">NOW</span>
+          <p class="text-text-primary text-xs mt-1">Indie Game<br/>Development</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social Links -->
+    <div class="text-center">
+      <h2 class="text-xl font-bold text-text-primary mb-4">Connect with {config.developerName}</h2>
+      <div class="flex justify-center mb-6">
+        <SocialLinks variant="footer" />
+      </div>
+      <p class="text-text-muted text-sm">
+        Join the <a href="https://discord.gg/jksWxFn" class="text-neon-light hover:text-neon-glow">Discord community</a> or support on <a href={config.patreonUrl} class="text-neon-light hover:text-neon-glow">Patreon</a> for exclusive updates.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

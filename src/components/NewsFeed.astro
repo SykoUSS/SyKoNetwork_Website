@@ -1,0 +1,95 @@
+---
+import PostCard from '@components/PostCard.astro';
+import type { PatreonPost } from '@components/PostCard.astro';
+
+export interface Props {
+  posts: PatreonPost[];
+  limit?: number;
+  emptyMessage?: string;
+}
+
+const { posts, limit, emptyMessage = 'No updates yet. Check back soon!' } = Astro.props;
+const initialCount = 20;
+const displayedPosts = limit ? posts.slice(0, limit) : posts;
+const hasMore = displayedPosts.length > initialCount;
+---
+
+<div id="news-feed">
+  {displayedPosts.length > 0 ? (
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
+      {displayedPosts.map((post, index) => (
+        <div class={`news-feed-item ${index >= initialCount ? 'news-feed-item--hidden' : ''}`}>
+          <PostCard post={post} />
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div class="text-center py-12 bg-dark-card rounded-xl border border-dark-border">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-text-muted mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+      </svg>
+      <p class="text-text-muted">{emptyMessage}</p>
+    </div>
+  )}
+
+  {hasMore && (
+    <div id="news-feed-more" class="text-center mt-8">
+      <button
+        id="show-more-btn"
+        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg border border-neon/50 text-neon-light font-medium hover:bg-neon/10 hover:border-neon transition-all"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+        Show More
+      </button>
+      <p id="news-feed-count" class="text-text-muted text-sm mt-2">
+        Showing <span id="shown-count">{initialCount}</span> of {displayedPosts.length} posts
+      </p>
+    </div>
+  )}
+</div>
+
+<style is:global>
+  .news-feed-item--hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  function initNewsFeed() {
+    const ITEMS_PER_CLICK = 20;
+
+    const btn = document.getElementById('show-more-btn');
+    const countEl = document.getElementById('shown-count');
+
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+      // Show the next batch of hidden items
+      const stillHidden = document.querySelectorAll('.news-feed-item--hidden');
+
+      stillHidden.forEach((item, i) => {
+        if (i < ITEMS_PER_CLICK) {
+          item.classList.remove('news-feed-item--hidden');
+        }
+      });
+
+      // Update count
+      const totalItems = document.querySelectorAll('.news-feed-item').length;
+      const newShown = totalItems - document.querySelectorAll('.news-feed-item--hidden').length;
+      if (countEl) countEl.textContent = String(newShown);
+
+      // Hide button if no more items
+      if (document.querySelectorAll('.news-feed-item--hidden').length === 0) {
+        const moreSection = document.getElementById('news-feed-more');
+        if (moreSection) {
+          moreSection.style.display = 'none';
+        }
+      }
+    });
+  }
+  // Run on initial load and after ViewTransitions page swaps
+  initNewsFeed();
+  document.addEventListener('astro:after-swap', initNewsFeed);
+</script>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" fill="none">
+  <rect width="400" height="240" rx="8" fill="#1a1a2e"/>
+  <rect x="0" y="0" width="400" height="240" rx="8" stroke="#c026d3" stroke-width="1" stroke-opacity="0.3"/>
+  <text x="200" y="110" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="18" fill="#d946ef">Coming Soon</text>
+  <text x="200" y="140" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#6a6a80">SyKoNetwork Project</text>
+</svg>

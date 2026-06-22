@@ -1,0 +1,674 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import argSecrets from '@data/arg-secrets.json';
+import crypto from 'crypto';
+
+const grantedData = argSecrets.adminGrantedData;
+const wifeData = argSecrets.wifeLandingData;
+
+// XOR-encrypt a string with a key, returning base64
+function xorEncrypt(text: string, key: string): string {
+  const textBytes = Buffer.from(text, 'utf-8');
+  const keyBytes = Buffer.from(key, 'utf-8');
+  const encrypted = Buffer.alloc(textBytes.length);
+  for (let i = 0; i < textBytes.length; i++) {
+    encrypted[i] = textBytes[i] ^ keyBytes[i % keyBytes.length];
+  }
+  return encrypted.toString('base64');
+}
+
+// Obfuscate admin codes: hash keys with SHA-256 and XOR-encrypt messages with the code so plaintext never reaches the client
+const hashedAdminCodes: Record<string, { type: string; message: string }> = {};
+for (const [key, value] of Object.entries(argSecrets.adminResponses)) {
+  const hash = crypto.createHash('sha256').update(key.toLowerCase()).digest('hex');
+  hashedAdminCodes[hash] = {
+    type: value.type,
+    message: xorEncrypt(value.message, key),
+  };
+}
+
+// XOR-encrypt landing data with their respective codes so they can't be decoded without knowing the code
+const encodedGranted = xorEncrypt(JSON.stringify(grantedData), 'S7N7X7');
+const encodedWife = xorEncrypt(JSON.stringify(wifeData), '031526');
+---
+
+<BaseLayout title="Admin" description="">
+  <div class="admin-gate">
+    <!-- Ambient background -->
+    <div class="admin-bg" aria-hidden="true"></div>
+
+    <!-- Login panel -->
+    <div class="admin-panel" id="admin-panel">
+      <div class="admin-header">
+        <div class="admin-icon" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <h1 class="admin-title">SyKoNetwork</h1>
+        <p class="admin-subtitle">System Administration</p>
+      </div>
+
+      <form id="admin-form" class="admin-form" autocomplete="off">
+        <div class="field-group">
+          <label for="auth-code" class="field-label">Authorization Code</label>
+          <input
+            id="auth-code"
+            type="text"
+            class="field-input"
+            placeholder="Enter access code"
+            spellcheck="false"
+            autofocus
+          />
+        </div>
+        <button type="submit" class="admin-submit">AUTHENTICATE</button>
+      </form>
+
+      <div id="admin-response" class="admin-response" aria-live="polite"></div>
+
+      <div class="admin-footer">
+        <span class="admin-version">v3.7.1 — {import.meta.env.PUBLIC_DEPLOY_TAG}</span>
+        <span class="admin-status" id="admin-status">● SECURED</span>
+      </div>
+    </div>
+
+    <!-- Landing pages are injected dynamically after auth to prevent source exposure -->
+  </div>
+</BaseLayout>
+
+<style is:global>
+  .admin-gate {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  /* Ambient background — subtle grid + radial glow */
+  .admin-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(192, 38, 211, 0.06) 0%, transparent 60%),
+      linear-gradient(rgba(192, 38, 211, 0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(192, 38, 211, 0.015) 1px, transparent 1px);
+    background-size: 100% 100%, 60px 60px, 60px 60px;
+    pointer-events: none;
+  }
+
+  /* Login panel */
+  .admin-panel {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 420px;
+    background: rgba(14, 14, 22, 0.95);
+    border: 1px solid var(--color-dark-border);
+    border-radius: 0.75rem;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.4), 0 0 80px rgba(192, 38, 211, 0.03);
+  }
+
+  .admin-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .admin-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(192, 38, 211, 0.08);
+    border: 1px solid rgba(192, 38, 211, 0.15);
+    color: var(--color-neon-light);
+    margin-bottom: 1rem;
+  }
+
+  .admin-title {
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: var(--color-text-primary);
+  }
+
+  .admin-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+  }
+
+  /* Form */
+  .admin-form {
+    margin-bottom: 1rem;
+  }
+
+  .field-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .field-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--color-text-muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    background: rgba(8, 8, 13, 0.8);
+    border: 1px solid var(--color-dark-border);
+    border-radius: 0.5rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .field-input::placeholder {
+    color: var(--color-dark-border-light);
+  }
+
+  .field-input:focus {
+    border-color: var(--color-neon);
+    box-shadow: 0 0 0 1px rgba(192, 38, 211, 0.2), 0 0 20px rgba(192, 38, 211, 0.05);
+  }
+
+  .admin-submit {
+    width: 100%;
+    padding: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #fff;
+    background: var(--color-neon);
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .admin-submit:hover {
+    background: var(--color-neon-light);
+    box-shadow: 0 0 20px rgba(192, 38, 211, 0.3);
+  }
+
+  .admin-submit:active {
+    transform: scale(0.98);
+  }
+
+  /* Response area */
+  .admin-response {
+    min-height: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1.5;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .admin-response.response-denied {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    color: #f87171;
+  }
+
+  .admin-response.response-partial {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+  }
+
+  .admin-response.response-anomaly {
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    color: var(--color-cyan-light);
+  }
+
+  /* Footer */
+  .admin-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-dark-border);
+  }
+
+  .admin-version {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--color-dark-border-light);
+    letter-spacing: 0.1em;
+  }
+
+  .admin-status {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: #10b981;
+    letter-spacing: 0.1em;
+  }
+
+  .admin-status.status-alert {
+    color: #f87171;
+  }
+
+  .admin-status.status-warning {
+    color: #fbbf24;
+  }
+
+  /* Granted view */
+  .admin-granted {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 520px;
+    display: none;
+    text-align: center;
+  }
+
+  .admin-granted.visible {
+    display: block;
+    animation: granted-in 0.6s ease-out;
+  }
+
+  @keyframes granted-in {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .granted-header {
+    margin-bottom: 2rem;
+  }
+
+  .granted-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(192, 38, 211, 0.1);
+    border: 1px solid rgba(192, 38, 211, 0.25);
+    color: var(--color-neon-light);
+    margin-bottom: 1.25rem;
+    box-shadow: 0 0 40px rgba(192, 38, 211, 0.15);
+  }
+
+  .granted-title {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    color: var(--color-neon-light);
+    text-shadow: 0 0 20px rgba(192, 38, 211, 0.5), 0 0 40px rgba(192, 38, 211, 0.2);
+  }
+
+  .granted-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: var(--color-cyan-light);
+    margin-top: 0.5rem;
+    opacity: 0.7;
+  }
+
+  /* Data rows */
+  .granted-data {
+    background: rgba(8, 8, 13, 0.9);
+    border: 1px solid rgba(192, 38, 211, 0.15);
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(31, 31, 46, 0.5);
+  }
+
+  .data-row:last-child {
+    border-bottom: none;
+  }
+
+  .data-key {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--color-text-muted);
+  }
+
+  .data-val {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--color-neon-light);
+    letter-spacing: 0.05em;
+  }
+
+  .data-hex {
+    color: var(--color-cyan-light);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+  }
+
+  /* Granted message */
+  .granted-message {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+  }
+
+  .granted-message code {
+    color: var(--color-cyan-light);
+    background: rgba(6, 182, 212, 0.08);
+    padding: 0.15em 0.4em;
+    border-radius: 0.25rem;
+    font-size: 0.85em;
+  }
+
+  .granted-hint {
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Wife landing view */
+  .admin-wife {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 520px;
+    display: none;
+    text-align: center;
+  }
+
+  .admin-wife.visible {
+    display: block;
+    animation: wife-in 0.8s ease-out;
+  }
+
+  @keyframes wife-in {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .wife-header {
+    margin-bottom: 2rem;
+  }
+
+  .wife-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(244, 114, 182, 0.1);
+    border: 1px solid rgba(244, 114, 182, 0.25);
+    color: #f472b6;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 0 40px rgba(244, 114, 182, 0.15);
+  }
+
+  .wife-title {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    color: #f472b6;
+    text-shadow: 0 0 20px rgba(244, 114, 182, 0.5), 0 0 40px rgba(244, 114, 182, 0.2);
+  }
+
+  .wife-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    color: #fda4af;
+    margin-top: 0.5rem;
+    opacity: 0.7;
+  }
+
+  .wife-data {
+    background: rgba(8, 8, 13, 0.9);
+    border: 1px solid rgba(244, 114, 182, 0.15);
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+
+  .wife-data .data-val {
+    color: #f472b6;
+  }
+
+  .wife-message {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+  }
+
+  .wife-hint {
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    color: #fda4af;
+  }
+
+  /* Screen shake on denied */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+  }
+
+  .admin-panel.shake {
+    animation: shake 0.4s ease-in-out;
+  }
+
+  /* Glitch flash on anomaly codes */
+  @keyframes glitch-flash {
+    0% { filter: none; }
+    10% { filter: hue-rotate(90deg) brightness(1.5); }
+    20% { filter: hue-rotate(-45deg) brightness(0.7); }
+    30% { filter: none; }
+    100% { filter: none; }
+  }
+
+  .admin-gate.glitching {
+    animation: glitch-flash 0.3s ease-out;
+  }
+</style>
+
+<script define:vars={{ adminCodes: hashedAdminCodes, grantedB64: encodedGranted, wifeB64: encodedWife }}>
+  function xorDecrypt(b64, key) {
+    const binary = atob(b64);
+    const keyBytes = new TextEncoder().encode(key);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    for (let i = 0; i < bytes.length; i++) {
+      bytes[i] ^= keyBytes[i % keyBytes.length];
+    }
+    return new TextDecoder('utf-8').decode(bytes);
+  }
+
+  function decodeLandingData(b64, key) {
+    return JSON.parse(xorDecrypt(b64, key));
+  }
+
+  function renderGranted(data) {
+    const el = document.createElement('div');
+    el.id = 'admin-granted';
+    el.className = 'admin-granted';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = `
+      <div class="granted-header">
+        <div class="granted-icon" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <h2 class="granted-title">ACCESS GRANTED</h2>
+        <p class="granted-subtitle">ALL CREDENTIALS VERIFIED</p>
+      </div>
+      <div class="granted-data">
+        <div class="data-row"><span class="data-key">STATUS</span><span class="data-val">${data.status}</span></div>
+        <div class="data-row"><span class="data-key">AUTH</span><span class="data-val">${data.auth}</span></div>
+        <div class="data-row"><span class="data-key">GATE</span><span class="data-val data-hex">${data.gate}</span></div>
+        <div class="data-row"><span class="data-key">ENCODING</span><span class="data-val">${data.encoding}</span></div>
+      </div>
+      <div class="granted-message">
+        ${Object.keys(data).filter(k => /^msg\d+$/.test(k)).sort((a, b) => parseInt(a.slice(3)) - parseInt(b.slice(3))).map(k => `<p>${data[k]}</p>`).join('\n        ')}
+        <p class="granted-hint">${data.hint}</p>
+      </div>`;
+    return el;
+  }
+
+  function renderWife(data) {
+    const el = document.createElement('div');
+    el.id = 'admin-wife';
+    el.className = 'admin-wife';
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = `
+      <div class="wife-header">
+        <div class="wife-icon" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </div>
+        <h2 class="wife-title">${data.title}</h2>
+        <p class="wife-subtitle">${data.subtitle}</p>
+      </div>
+      <div class="wife-data">
+        <div class="data-row"><span class="data-key">STATUS</span><span class="data-val">${data.status}</span></div>
+        <div class="data-row"><span class="data-key">AUTH</span><span class="data-val">${data.auth}</span></div>
+        <div class="data-row"><span class="data-key">GATE</span><span class="data-val data-hex">${data.gate}</span></div>
+        <div class="data-row"><span class="data-key">ENCODING</span><span class="data-val">${data.encoding}</span></div>
+      </div>
+      <div class="wife-message">
+        ${Object.keys(data).filter(k => /^msg\d+$/.test(k)).sort((a, b) => parseInt(a.slice(3)) - parseInt(b.slice(3))).map(k => `<p>${data[k]}</p>`).join('\n        ')}
+        <p class="wife-hint">${data.hint}</p>
+      </div>`;
+    return el;
+  }
+
+  async function hashCode(code) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(code.toLowerCase());
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function initAdminGate() {
+    const form = document.getElementById('admin-form');
+    const input = document.getElementById('auth-code');
+    const response = document.getElementById('admin-response');
+    const panel = document.getElementById('admin-panel');
+    const statusEl = document.getElementById('admin-status');
+    const gate = document.querySelector('.admin-gate');
+    if (!form || !input) return;
+
+    // Hashed code responses — plaintext codes are never exposed
+    const codes = adminCodes;
+
+    let attemptCount = 0;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = input.value.trim();
+      if (!code) return;
+
+      attemptCount++;
+      const hash = await hashCode(code);
+      const match = codes[hash];
+
+      // Clear previous response
+      response.className = 'admin-response';
+      response.textContent = '';
+
+      if (!match) {
+        // Unknown code — generic denial
+        response.classList.add('response-denied');
+        response.textContent = getDenialMessage(attemptCount);
+        panel.classList.add('shake');
+        setTimeout(() => panel.classList.remove('shake'), 400);
+        statusEl.textContent = '● ACCESS DENIED';
+        statusEl.className = 'admin-status status-alert';
+        setTimeout(() => {
+          statusEl.textContent = '● SECURED';
+          statusEl.className = 'admin-status';
+        }, 3000);
+        return;
+      }
+
+      if (match.type === 'partial') {
+        response.classList.add('response-partial');
+        response.textContent = xorDecrypt(match.message, code);
+        statusEl.textContent = '● PARTIAL MATCH';
+        statusEl.className = 'admin-status status-warning';
+        setTimeout(() => {
+          statusEl.textContent = '● SECURED';
+          statusEl.className = 'admin-status';
+        }, 4000);
+      } else if (match.type === 'anomaly') {
+        response.classList.add('response-anomaly');
+        response.textContent = xorDecrypt(match.message, code);
+        gate.classList.add('glitching');
+        setTimeout(() => gate.classList.remove('glitching'), 300);
+        statusEl.textContent = '● ANOMALY';
+        statusEl.className = 'admin-status status-warning';
+        setTimeout(() => {
+          statusEl.textContent = '● SECURED';
+          statusEl.className = 'admin-status';
+        }, 4000);
+      } else if (match.type === 'granted') {
+        // Full access — inject and reveal the authorized data
+        panel.style.display = 'none';
+        const granted = renderGranted(decodeLandingData(grantedB64, code));
+        gate.appendChild(granted);
+        granted.classList.add('visible');
+        granted.setAttribute('aria-hidden', 'false');
+      } else if (match.type === 'wife') {
+        // Wife landing — inject and reveal the personal page
+        panel.style.display = 'none';
+        const wife = renderWife(decodeLandingData(wifeB64, code));
+        gate.appendChild(wife);
+        wife.classList.add('visible');
+        wife.setAttribute('aria-hidden', 'false');
+      }
+
+      input.value = '';
+    });
+
+    function getDenialMessage(attempts) {
+      if (attempts <= 2) return 'Invalid authorization code. Access denied.';
+      if (attempts <= 5) return 'Code not recognized. The system does not acknowledge this input.';
+      if (attempts <= 8) return 'Repeated failures logged. Authentication required.';
+      if (attempts <= 12) return 'Multiple invalid attempts detected. Verify your credentials and try again.';
+      return 'Access denied. Please contact system administration if you believe this is an error.';
+    }
+  }
+
+  initAdminGate();
+  document.addEventListener('astro:after-swap', initAdminGate);
+</script>

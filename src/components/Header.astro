@@ -1,0 +1,110 @@
+---
+import SocialLinks from '@components/SocialLinks.astro';
+import Avatar from '@components/Avatar.astro';
+import config from '@data/site-config.json';
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const navLinks = [
+  { label: 'Home', href: `${basePath}/` },
+  { label: 'Projects', href: `${basePath}/projects` },
+  { label: 'News', href: `${basePath}/news` },
+  { label: 'About', href: `${basePath}/about` },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<header class="sticky top-0 z-50 bg-dark-bg/80 backdrop-blur-md border-b border-dark-border">
+  <nav class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div class="flex h-16 items-center justify-between">
+      <!-- Logo / Brand -->
+      <a href={`${basePath}/`} class="flex items-center gap-3 group" aria-label="SyKoNetwork Home">
+        <Avatar size="sm" class="ring-1 ring-neon/30 group-hover:ring-neon transition-all" />
+        <span class="text-lg font-bold tracking-tight text-text-primary group-hover:text-neon-light transition-colors">
+          {config.siteName}
+        </span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <div class="hidden md:flex items-center gap-1">
+        {navLinks.map((link) => {
+          const isActive = currentPath === link.href ||
+            (link.href !== '/' && currentPath.startsWith(link.href));
+          return (
+            <a
+              href={link.href}
+              class={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'text-neon-light bg-neon/10'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-dark-card'
+              }`}
+            >
+              {link.label}
+            </a>
+          );
+        })}
+        <div class="ml-4 pl-4 border-l border-dark-border">
+          <SocialLinks variant="header" />
+        </div>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button
+        id="mobile-menu-btn"
+        class="md:hidden p-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-dark-card transition-colors"
+        aria-label="Toggle menu"
+        aria-expanded="false"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path id="menu-icon-open" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          <path id="menu-icon-close" stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" class="hidden" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden pb-4 border-t border-dark-border">
+      <div class="flex flex-col gap-1 pt-3">
+        {navLinks.map((link) => {
+          const isActive = currentPath === link.href ||
+            (link.href !== '/' && currentPath.startsWith(link.href));
+          return (
+            <a
+              href={link.href}
+              class={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive
+                  ? 'text-neon-light bg-neon/10'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-dark-card'
+              }`}
+            >
+              {link.label}
+            </a>
+          );
+        })}
+        <div class="pt-3 mt-2 border-t border-dark-border">
+          <SocialLinks variant="header" />
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<script>
+  function initMobileMenu() {
+    const btn = document.getElementById('mobile-menu-btn');
+    const menu = document.getElementById('mobile-menu');
+    const iconOpen = document.getElementById('menu-icon-open');
+    const iconClose = document.getElementById('menu-icon-close');
+
+    btn?.addEventListener('click', () => {
+      const isOpen = menu?.classList.toggle('hidden');
+      btn.setAttribute('aria-expanded', String(!isOpen));
+      iconOpen?.classList.toggle('hidden', !isOpen);
+      iconClose?.classList.toggle('hidden', isOpen);
+    });
+  }
+  // Run on initial load and after ViewTransitions page swaps
+  initMobileMenu();
+  document.addEventListener('astro:after-swap', initMobileMenu);
+</script>

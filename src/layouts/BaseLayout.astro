@@ -1,0 +1,115 @@
+---
+import Header from '@components/Header.astro';
+import Footer from '@components/Footer.astro';
+import config from '@data/site-config.json';
+import argSecrets from '@data/arg-secrets.json';
+import { ViewTransitions } from 'astro:transitions';
+import '@styles/global.css';
+
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+export interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title,
+  description = config.description,
+  ogImage: ogImageProp = config.avatarUrl,
+} = Astro.props;
+
+// Prepend base path for local asset URLs
+const ogImage = ogImageProp?.startsWith('/') ? `${basePath}${ogImageProp}` : ogImageProp;
+const logoUrl = config.avatarUrl?.startsWith('/') ? `${basePath}${config.avatarUrl}` : config.avatarUrl;
+
+const fullTitle = `${title} — ${config.siteName}`;
+const siteUrl = Astro.site?.href ?? 'https://sykosofi.github.io';
+const currentUrl = new URL(Astro.url.pathname, siteUrl).href;
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <Fragment set:html={`<!-- Build: 2025.06.13 | Ref: ${import.meta.env.PUBLIC_BUILD_REF} | Deploy: prod -->`} />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="x-tracking" content={import.meta.env.PUBLIC_TRACKING_ID} />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={currentUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content={config.siteName} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href={`${basePath}/favicon.png`} />
+    <link rel="icon" type="image/svg+xml" href={`${basePath}/favicon.svg`} />
+
+    <!-- Design tokens -->
+    <style is:inline set:html={`:root { --color-accent-deep: ${import.meta.env.PUBLIC_DEEP_ACCENT}; --auth-payload: '${import.meta.env.PUBLIC_AUTH_PAYLOAD}'; }`}></style>
+
+    <!-- JSON-LD Structured Data: Organization -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: config.siteName,
+      url: siteUrl,
+      logo: logoUrl,
+      description: config.description,
+      founder: {
+        '@type': 'Person',
+        name: config.developerName,
+      },
+      sameAs: [
+        'https://discord.gg/jksWxFn',
+        'https://www.patreon.com/SyKoSoFi/home',
+        'https://twitter.com/SyKoSoFi',
+        'https://twitch.tv/sykosofi',
+        'https://www.instagram.com/sofiasykotik',
+        'https://www.curseforge.com/members/sykosofi/projects',
+      ],
+    })} />
+
+    <!-- JSON-LD Structured Data: Person -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: config.developerName,
+      url: siteUrl,
+      image: logoUrl,
+      description: config.description,
+      knowsAbout: argSecrets.orgKnowledge,
+      memberOf: {
+        '@type': 'Organization',
+        name: config.siteName,
+      },
+      sameAs: [
+        'https://twitter.com/SyKoSoFi',
+        'https://twitch.tv/sykosofi',
+        'https://www.instagram.com/sofiasykotik',
+        'https://www.patreon.com/SyKoSoFi/home',
+      ],
+    })} />
+
+    <!-- View Transitions for smooth page navigation -->
+    <ViewTransitions />
+  </head>
+  <body class="min-h-screen bg-dark-bg text-text-primary antialiased">
+    <Header />
+    <main class="relative z-10">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

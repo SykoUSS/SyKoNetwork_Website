@@ -1,0 +1,102 @@
+name: Deploy to GitHub Pages
+
+on:
+  # Trigger on push to main branch
+  push:
+    branches: [main]
+  # Allow manual trigger from Actions tab
+  workflow_dispatch:
+
+# Set permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: github-pages
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch Patreon data
+        run: node scripts/fetch-patreon.js
+        env:
+          PATREON_ACCESS_TOKEN: ${{ secrets.PATREON_ACCESS_TOKEN }}
+
+      - name: Create ARG secrets file
+        run: |
+          printf '%s' "$ARG_SECRETS_JSON" > src/data/arg-secrets.json
+          if [ ! -s src/data/arg-secrets.json ]; then
+            echo "::error::ARG_SECRETS_JSON secret is empty or not set. The file was not created."
+            exit 1
+          fi
+          if ! node -e "JSON.parse(require('fs').readFileSync('src/data/arg-secrets.json','utf8'))" 2>/dev/null; then
+            echo "::error::arg-secrets.json contains invalid JSON."
+            exit 1
+          fi
+          echo "arg-secrets.json validated successfully"
+        env:
+          ARG_SECRETS_JSON: ${{ secrets.ARG_SECRETS_JSON }}
+
+      - name: Build site
+        run: npm run build
+        env:
+          # ARG fragments — non-sensitive strings stored as GitHub repository variables
+          # Complex data (JSON objects, multiline text) is in arg-secrets.json
+          PUBLIC_BUILD_REF: ${{ vars.PUBLIC_BUILD_REF }}
+          PUBLIC_ROBOTS_DISALLOW: ${{ vars.PUBLIC_ROBOTS_DISALLOW }}
+          PUBLIC_TRACKING_ID: ${{ vars.PUBLIC_TRACKING_ID }}
+          PUBLIC_AB_TEST_VARIANT: ${{ vars.PUBLIC_AB_TEST_VARIANT }}
+          PUBLIC_DEEP_ACCENT: ${{ vars.PUBLIC_DEEP_ACCENT }}
+          PUBLIC_ACCESSIBILITY_LABEL: ${{ vars.PUBLIC_ACCESSIBILITY_LABEL }}
+          PUBLIC_ASSET_META_TITLE: ${{ vars.PUBLIC_ASSET_META_TITLE }}
+          PUBLIC_ASSET_META_DESC: ${{ vars.PUBLIC_ASSET_META_DESC }}
+          PUBLIC_ANALYTICS_ID: ${{ vars.PUBLIC_ANALYTICS_ID }}
+          PUBLIC_MEM_ADDR: ${{ vars.PUBLIC_MEM_ADDR }}
+          PUBLIC_AUTH_PAYLOAD: ${{ vars.PUBLIC_AUTH_PAYLOAD }}
+          PUBLIC_DEPLOY_TAG: ${{ vars.PUBLIC_DEPLOY_TAG }}
+          PUBLIC_SHOWCASE_TITLE: ${{ vars.PUBLIC_SHOWCASE_TITLE }}
+          PUBLIC_SHOWCASE_CLASS: ${{ vars.PUBLIC_SHOWCASE_CLASS }}
+          PUBLIC_SHOWCASE_HEADING: ${{ vars.PUBLIC_SHOWCASE_HEADING }}
+          PUBLIC_SHOWCASE_TAGLINE: ${{ vars.PUBLIC_SHOWCASE_TAGLINE }}
+          PUBLIC_SHOWCASE_SUBTITLE: ${{ vars.PUBLIC_SHOWCASE_SUBTITLE }}
+          PUBLIC_SHOWCASE_TX_TITLE: ${{ vars.PUBLIC_SHOWCASE_TX_TITLE }}
+          PUBLIC_SHOWCASE_TX_META: ${{ vars.PUBLIC_SHOWCASE_TX_META }}
+          PUBLIC_SHOWCASE_TEASER_TITLE: ${{ vars.PUBLIC_SHOWCASE_TEASER_TITLE }}
+          PUBLIC_SHOWCASE_STAT_ENGINE: ${{ vars.PUBLIC_SHOWCASE_STAT_ENGINE }}
+          PUBLIC_SHOWCASE_STAT_DEPTH: ${{ vars.PUBLIC_SHOWCASE_STAT_DEPTH }}
+          PUBLIC_SHOWCASE_CTA: ${{ vars.PUBLIC_SHOWCASE_CTA }}
+          PUBLIC_SHOWCASE_CTA_HINT: ${{ vars.PUBLIC_SHOWCASE_CTA_HINT }}
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

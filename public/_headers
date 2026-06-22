@@ -1,0 +1,19 @@
+# Cross-origin isolation headers for Godot Web exports
+# Required for SharedArrayBuffer support (needed by Godot 4.x)
+/hex-tac-toe/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+# Ensure .wasm files are served with the correct MIME type
+# Firefox requires this for WebAssembly.instantiateStreaming()
+/hex-tac-toe/*.wasm
+  Content-Type: application/wasm
+  Cross-Origin-Resource-Policy: cross-origin
+
+# Allow .pck files to be loaded under COEP
+/hex-tac-toe/*.pck
+  Cross-Origin-Resource-Policy: cross-origin
+
+# Allow .js files to be loaded under COEP
+/hex-tac-toe/*.js
+  Cross-Origin-Resource-Policy: cross-origin

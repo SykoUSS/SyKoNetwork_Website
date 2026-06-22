@@ -1,0 +1,152 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import config from '@data/site-config.json';
+
+const gameTitle = 'Hex-Tac-Toe';
+const gameDescription = `Play Hex-Tac-Toe — a hex-based tactical game by ${config.siteName}. Built with Godot Engine.`;
+---
+
+<BaseLayout title={gameTitle} description={gameDescription}>
+  <div class="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+    <!-- Game Header -->
+    <div class="text-center mb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
+        <span class="neon-glow">Hex-Tac-Toe</span>
+      </h1>
+      <p class="text-text-muted text-sm sm:text-base max-w-xl mx-auto">
+        A hex-based tactical game — play it right here in your browser!
+      </p>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container" class="relative w-full max-w-4xl mx-auto aspect-[16/9] rounded-xl overflow-hidden border-2 border-dark-border-light shadow-lg shadow-neon-subtle bg-dark-surface">
+      <iframe
+        id="game-frame"
+        src="/hex-tac-toe/game.html"
+        title="Hex-Tac-Toe"
+        allow="autoplay; fullscreen; clipboard-write"
+        allowfullscreen
+        class="absolute inset-0 w-full h-full"
+        style="border: none;"
+      ></iframe>
+
+      <!-- Loading overlay -->
+      <div id="game-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-dark-surface z-10 transition-opacity duration-500">
+        <div class="mb-4">
+          <svg class="animate-spin h-10 w-10 text-neon-glow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A5.962 5.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <p class="text-text-secondary text-lg font-semibold">Loading Hex-Tac-Toe…</p>
+        <p class="text-text-muted text-sm mt-1">This may take a moment on first load</p>
+      </div>
+    </div>
+
+    <!-- Controls & Info -->
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <button
+        id="btn-fullscreen"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-subtle border border-neon/30 text-neon-glow hover:bg-neon/20 transition-colors text-sm font-medium"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m6-5h4m0 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11-4v4m0 0h-4m4 0l-5-5" />
+        </svg>
+        Fullscreen
+      </button>
+      <a
+        href="/projects"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-card border border-dark-border text-text-secondary hover:text-text-primary hover:border-dark-border-light transition-colors text-sm font-medium"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Projects
+      </a>
+    </div>
+
+    <!-- Game Info -->
+    <div class="mt-10 grid gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
+      <div class="bg-dark-card rounded-xl border border-dark-border p-5">
+        <h3 class="text-neon-glow font-bold text-lg mb-2 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          About
+        </h3>
+        <p class="text-text-secondary text-sm leading-relaxed">
+          Hex-Tac-Toe is a hex-based tactical game built with the Godot Engine. Challenge yourself with strategic hex-grid gameplay!
+        </p>
+      </div>
+      <div class="bg-dark-card rounded-xl border border-dark-border p-5">
+        <h3 class="text-cyan-glow font-bold text-lg mb-2 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Controls
+        </h3>
+        <p class="text-text-secondary text-sm leading-relaxed">
+          Use your mouse or touch to interact with the game. Click the Fullscreen button for the best experience.
+        </p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // Hide loading overlay once the game iframe loads and the engine starts
+  const iframe = document.getElementById('game-frame') as HTMLIFrameElement;
+  const overlay = document.getElementById('game-loading');
+
+  if (iframe && overlay) {
+    let overlayHidden = false;
+
+    function hideOverlay() {
+      if (overlayHidden) return;
+      overlayHidden = true;
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 500);
+    }
+
+    // Listen for the iframe to load
+    iframe.addEventListener('load', () => {
+      // Wait a short delay to give the engine time to initialize and
+      // remove its own status overlay, then hide our loading overlay
+      setTimeout(hideOverlay, 1500);
+    });
+
+    // Fallback: hide overlay after a maximum wait regardless
+    setTimeout(hideOverlay, 15000);
+  }
+
+  // Fullscreen button — targets the game container for fullscreen.
+  // Must be triggered directly from user gesture (click).
+  const btnFullscreen = document.getElementById('btn-fullscreen');
+  const gameContainer = document.getElementById('game-container');
+  if (btnFullscreen && gameContainer) {
+    btnFullscreen.addEventListener('click', () => {
+      if (gameContainer.requestFullscreen) {
+        gameContainer.requestFullscreen();
+      } else if ((document as any).webkitRequestFullscreen) {
+        (gameContainer as any).webkitRequestFullscreen();
+      }
+    });
+
+    // Handle fullscreen change to adjust container styling
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement === gameContainer) {
+        gameContainer.style.aspectRatio = 'auto';
+        gameContainer.style.maxWidth = 'none';
+        gameContainer.style.width = '100vw';
+        gameContainer.style.height = '100vh';
+      } else {
+        gameContainer.style.aspectRatio = '';
+        gameContainer.style.maxWidth = '';
+        gameContainer.style.width = '';
+        gameContainer.style.height = '';
+      }
+    });
+  }
+</script>

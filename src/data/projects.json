@@ -1,0 +1,92 @@
+[
+  {
+    "id": "project-nexus",
+    "title": "Project Nexus",
+    "description": "A new game from SyKoNetwork. Something big is brewing — details coming soon.",
+    "thumbnail": "/images/placeholder-project.svg",
+    "link": "https://www.patreon.com/SyKoSoFi/home",
+    "linkLabel": "Follow on Patreon",
+    "status": "coming-soon",
+    "tags": ["New Project", "In Development"]
+  },
+  {
+    "id": "hex-tac-toe",
+    "title": "Hex Tac Toe",
+    "description": "A strategic twist on the classic game Tic Tac Toe.",
+    "thumbnail": "/images/project/hex-tac-toe.png",
+    "link": "/hex-tac-toe",
+    "linkLabel": "Try the Web Demo",
+    "status": "active",
+    "tags": ["New Project", "Web Demo"]
+  },
+  {
+    "id": "ender-elevators",
+    "title": "Ender Elevators",
+    "description": "A Minecraft Bedrock addon for seamless vertical transportation using ender pearls. Features multi-floor elevator systems with smooth teleportation mechanics.",
+    "thumbnail": "/images/project/ender-elevators.png",
+    "link": "https://www.curseforge.com/minecraft-bedrock/addons/ender-elevators-addon-2",
+    "linkLabel": "View on CurseForge",
+    "status": "legacy",
+    "tags": ["Minecraft Bedrock", "Addon", "Transportation"]
+  },
+  {
+    "id": "dungeon-expanse",
+    "title": "Dungeon Expanse",
+    "description": "A Minecraft Bedrock dungeon expansion addon that generates vast underground structures with custom rooms, traps, and loot.",
+    "thumbnail": "/images/project/dungeon-expanse.png",
+    "link": "https://www.curseforge.com/minecraft-bedrock/addons/dungeon-expanse-add-on",
+    "linkLabel": "View on CurseForge",
+    "status": "legacy",
+    "tags": ["Minecraft Bedrock", "Addon", "Dungeons"]
+  },
+  {
+    "id": "compressed-crafting",
+    "title": "Compressed Crafting",
+    "description": "Compressed block crafting for Minecraft Bedrock. Store more resources in less space with compressed variants of common blocks.",
+    "thumbnail": "/images/placeholder-legacy.svg",
+    "link": "https://www.curseforge.com/members/sykosofi/projects",
+    "linkLabel": "View on CurseForge",
+    "status": "legacy",
+    "tags": ["Minecraft Bedrock", "Addon", "Crafting"]
+  },
+  {
+    "id": "survival-miner",
+    "title": "Survival Miner",
+    "description": "Enhanced mining experience for Minecraft Bedrock by adding vein mining and custom tools.",
+    "thumbnail": "/images/placeholder-legacy.svg",
+    "link": "https://www.curseforge.com/members/sykosofi/projects",
+    "linkLabel": "View on CurseForge",
+    "status": "legacy",
+    "tags": ["Minecraft Bedrock", "Addon", "Mining"]
+  },
+  {
+    "id": "crazy-caves",
+    "title": "Crazy Caves",
+    "description": "Expanded cave generation for Minecraft Bedrock. Added before the official caves and cliffs update, featuring new \"cave biomes\", formations, and underground features.",
+    "thumbnail": "/images/placeholder-legacy.svg",
+    "link": "https://www.curseforge.com/members/sykosofi/projects",
+    "linkLabel": "View on CurseForge",
+    "status": "legacy",
+    "tags": ["Minecraft Bedrock", "Addon", "World Generation"]
+  },
+  {
+    "id": "paintball-plus",
+    "title": "PaintBall+",
+    "description": "A paintball minigame for Minecraft Bedrock. Team-based competitive gameplay with custom arenas and power-ups.",
+    "thumbnail": "/images/placeholder-legacy.svg",
+    "link": "https://www.curseforge.com/members/sykosofi/projects",
+    "linkLabel": "View on CurseForge",
+    "status": "legacy",
+    "tags": ["Minecraft Bedrock", "Addon", "Minigame"]
+  },
+  {
+    "id": "little-things",
+    "title": "The Little Things",
+    "description": "Quality of life improvements for Minecraft Bedrock. Small tweaks that make a big difference — adding uncrafting recipes for most of the crafted items.",
+    "thumbnail": "/images/project/the-little-things.png",
+    "link": "https://www.curseforge.com/minecraft-bedrock/addons/the-little-things",
+    "linkLabel": "View on CurseForge",
+    "status": "legacy",
+    "tags": ["Minecraft Bedrock", "Addon", "Quality of Life"]
+  }
+]
