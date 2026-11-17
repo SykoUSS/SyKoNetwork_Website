@@ -1,0 +1,802 @@
+---
+import ProjectCard from '@components/ProjectCard.astro';
+
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string;
+  link: string;
+  linkLabel: string;
+  category?: string;
+  status: string;
+  tags: string[];
+}
+
+interface Props {
+  projects: Project[];
+  mode: 'featured-only' | 'coming-soon' | 'random' | 'creative-orbit' | 'featured-plus-random-catalog';
+}
+
+const { projects, mode } = Astro.props;
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const resolveImg = (src: string) =>
+  src.startsWith('http') ? src : `${basePath}${src.startsWith('/') ? '' : '/'}${src}`;
+
+const resolveLink = (href: string) =>
+  href.startsWith('http') ? href : `${basePath}${href.startsWith('/') ? '' : '/'}${href}`;
+
+// Filter lists for the different modes
+const featuredList = projects.filter((p) => p.status === 'active' || p.status === 'coming-soon');
+const comingSoonList = projects.filter((p) => p.status === 'coming-soon');
+const catalogList = projects.filter((p) => p.status === 'catalog');
+
+// Ordered pool for orbit modes (Featured items first, then catalog items)
+const orbitProjects =
+  mode === 'featured-plus-random-catalog'
+    ? [...featuredList, ...catalogList]
+    : projects;
+
+const initialVisibleCount =
+  mode === 'featured-plus-random-catalog'
+    ? featuredList.length + Math.min(3, catalogList.length)
+    : orbitProjects.length;
+---
+
+{mode === 'featured-only' && (
+  <div class="flex flex-col gap-8">
+    {featuredList.map((project, index) => (
+      <div class="portal-reveal-card" style={`--reveal-delay: ${index * 140}ms;`}>
+        <ProjectCard project={project} variant="featured" index={index} />
+      </div>
+    ))}
+  </div>
+)}
+
+{mode === 'coming-soon' && (
+  <div class="flex flex-col gap-8">
+    {comingSoonList.map((project, index) => (
+      <div class="portal-reveal-card" style={`--reveal-delay: ${index * 140}ms;`}>
+        <ProjectCard project={project} variant="featured" index={index} />
+      </div>
+    ))}
+  </div>
+)}
+
+{mode === 'random' && (
+  <div id="random-project-stage" class="relative">
+    <div class="flex justify-end mb-4">
+      <button
+        id="reroll-project-btn"
+        type="button"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-dark-card border border-neon/40 text-neon-light hover:bg-neon/20 hover:border-neon transition-all duration-200 cursor-pointer group"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 transition-transform duration-500 group-hover:rotate-180"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Roll Another Project
+      </button>
+    </div>
+
+    <div class="relative min-h-[260px]">
+      {projects.map((project, index) => (
+        <div
+          class={`random-project-slot portal-reveal-card ${index === 0 ? '' : 'hidden'}`}
+          data-random-index={index}
+        >
+          <ProjectCard project={project} variant="featured" index={0} />
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{(mode === 'creative-orbit' || mode === 'featured-plus-random-catalog') && orbitProjects.length > 0 && (
+  <div
+    id="creative-orbit-showcase"
+    data-orbit-mode={mode}
+    class="relative select-none"
+  >
+    <!-- Ambient floating background particles -->
+    <div class="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl">
+      <span class="orbit-particle" style="top: 12%; left: 10%; --dur: 6s; --delay: 0s;"></span>
+      <span class="orbit-particle" style="top: 75%; left: 18%; --dur: 8s; --delay: 1.5s;"></span>
+      <span class="orbit-particle" style="top: 22%; right: 14%; --dur: 7s; --delay: 0.8s;"></span>
+      <span class="orbit-particle" style="bottom: 18%; right: 22%; --dur: 9s; --delay: 2.2s;"></span>
+    </div>
+
+    <!-- Top Control Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-8 px-1">
+      {mode === 'creative-orbit' ? (
+        <div class="flex flex-wrap items-center gap-2" role="tablist" aria-label="Filter projects">
+          <button
+            type="button"
+            class="orbit-filter-btn active px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all cursor-pointer"
+            data-filter="all"
+          >
+            All Creations ({orbitProjects.length})
+          </button>
+          <button
+            type="button"
+            class="orbit-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all cursor-pointer"
+            data-filter="indie"
+          >
+            Indie Games
+          </button>
+          <button
+            type="button"
+            class="orbit-filter-btn px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all cursor-pointer"
+            data-filter="minecraft"
+          >
+            Minecraft Java &amp; Bedrock
+          </button>
+        </div>
+      ) : (
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-neon/10 text-neon-light border border-neon/25">
+            <span class="w-1.5 h-1.5 rounded-full bg-neon-light animate-pulse"></span>
+            Featured + 3 Random Picks
+          </span>
+
+          {catalogList.length > 3 && (
+            <button
+              id="orbit-reroll-catalog-btn"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide bg-dark-card border border-neon/40 text-neon-light hover:bg-neon/20 hover:border-neon transition-all duration-200 cursor-pointer group"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-3.5 w-3.5 transition-transform duration-500 group-hover:rotate-180"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Shuffle 3 Picks
+            </button>
+          )}
+        </div>
+      )}
+
+      <div class="flex items-center gap-2">
+        <button
+          id="orbit-prev-btn"
+          type="button"
+          aria-label="Previous project"
+          class="p-2 rounded-lg bg-dark-card border border-dark-border text-text-secondary hover:text-neon-light hover:border-neon/50 transition-colors cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          id="orbit-autoplay-btn"
+          type="button"
+          class="px-3 py-1.5 rounded-lg bg-dark-card border border-neon/30 text-xs font-semibold text-neon-light hover:bg-neon/15 transition-colors cursor-pointer"
+        >
+          Auto-Orbit: ON
+        </button>
+        <button
+          id="orbit-next-btn"
+          type="button"
+          aria-label="Next project"
+          class="p-2 rounded-lg bg-dark-card border border-dark-border text-text-secondary hover:text-neon-light hover:border-neon/50 transition-colors cursor-pointer"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3D Holo-Stage Spotlight (Outer wrapper handles scroll reveal; inner card handles permanent 3D tilt) -->
+    <div class="perspective-stage mb-8 portal-reveal-card">
+      <div
+        id="holo-active-card"
+        class="holo-stage-card relative rounded-2xl bg-dark-card/90 border border-neon/40 p-6 sm:p-8 shadow-2xl overflow-hidden"
+      >
+        <!-- Single-play highlight sweep on initial card load -->
+        <div class="holo-shine pointer-events-none"></div>
+
+        <!-- Dedicated inner wrapper for card-swap transitions so it never overrides parent 3D tilt -->
+        <div id="holo-stage-content" class="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8 items-center">
+          <!-- Thumbnail Portal -->
+          <div class="md:col-span-5 relative group">
+            <div class="relative aspect-video rounded-xl overflow-hidden border border-neon/30 bg-dark-surface shadow-inner">
+              <img
+                id="stage-thumb"
+                src={resolveImg(orbitProjects[0].thumbnail)}
+                alt={orbitProjects[0].title}
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-dark-card/80 via-transparent to-transparent"></div>
+              <span
+                id="stage-counter"
+                class="absolute bottom-3 left-3 px-2.5 py-0.5 rounded-md bg-dark-card/90 border border-neon/30 text-[11px] font-mono text-neon-light"
+              >
+                01 / {String(initialVisibleCount).padStart(2, '0')}
+              </span>
+            </div>
+          </div>
+
+          <!-- Project Details -->
+          <div class="md:col-span-7 flex flex-col justify-between">
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <span
+                  id="stage-status-badge"
+                  class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-neon/15 text-neon-light border border-neon/30"
+                >
+                  {orbitProjects[0].status === 'coming-soon'
+                    ? 'Coming Soon'
+                    : orbitProjects[0].status === 'active'
+                      ? 'Featured'
+                      : 'Minecraft'}
+                </span>
+                <div id="stage-tags" class="flex flex-wrap gap-1.5">
+                  {orbitProjects[0].tags.map((tag) => (
+                    <span class="px-2.5 py-0.5 rounded-md text-xs font-medium bg-dark-surface text-text-secondary border border-dark-border">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <h3
+                id="stage-title"
+                class="text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight mb-3"
+              >
+                {orbitProjects[0].title}
+              </h3>
+
+              <p
+                id="stage-desc"
+                class="text-text-secondary text-sm sm:text-base leading-relaxed mb-6"
+              >
+                {orbitProjects[0].description}
+              </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4">
+              <a
+                id="stage-link"
+                href={resolveLink(orbitProjects[0].link)}
+                target={orbitProjects[0].link.startsWith('http') ? '_blank' : undefined}
+                rel={orbitProjects[0].link.startsWith('http') ? 'noopener noreferrer' : undefined}
+                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-neon text-white font-semibold text-sm hover:bg-neon-light transition-all duration-200 hover:scale-105 neon-border"
+              >
+                <span id="stage-link-label">{orbitProjects[0].linkLabel}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-orbit progress bar -->
+        <div class="absolute bottom-0 left-0 right-0 h-1 bg-dark-surface">
+          <div id="orbit-progress-bar" class="h-full bg-neon transition-all duration-100 ease-linear" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Cartridge Dock -->
+    <div
+      id="orbit-cartridge-dock"
+      class={`grid gap-3 ${
+        mode === 'featured-plus-random-catalog'
+          ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
+          : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'
+      }`}
+    >
+      {orbitProjects.map((project, idx) => {
+        const isInitiallyHidden =
+          mode === 'featured-plus-random-catalog' &&
+          project.status === 'catalog' &&
+          idx >= initialVisibleCount;
+
+        return (
+          <button
+            type="button"
+            class={`orbit-cartridge portal-reveal-card group relative flex flex-col items-start text-left p-2.5 rounded-xl border transition-all duration-300 cursor-pointer ${
+              isInitiallyHidden ? 'hidden' : ''
+            } ${
+              idx === 0
+                ? 'is-selected bg-neon/15 border-neon shadow-lg -translate-y-1'
+                : 'bg-dark-card/70 border-dark-border hover:border-neon/50 hover:-translate-y-1'
+            }`}
+            style={`--reveal-delay: ${(idx % 6) * 55}ms;`}
+            data-index={idx}
+            data-category={project.category || 'minecraft'}
+            data-title={project.title}
+            data-desc={project.description}
+            data-thumb={resolveImg(project.thumbnail)}
+            data-link={resolveLink(project.link)}
+            data-link-label={project.linkLabel}
+            data-external={project.link.startsWith('http') ? 'true' : 'false'}
+            data-status={project.status}
+            data-tags={JSON.stringify(project.tags)}
+          >
+            <div class="w-full aspect-video rounded-lg overflow-hidden mb-2 bg-dark-surface relative">
+              <img
+                src={resolveImg(project.thumbnail)}
+                alt={project.title}
+                loading="lazy"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              />
+              {project.status === 'coming-soon' && (
+                <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-neon-light animate-ping"></span>
+              )}
+              {project.status === 'active' && (
+                <span class="absolute top-1 right-1 px-1.5 py-0.2 rounded bg-neon/80 text-[9px] font-bold text-white uppercase">
+                  Active
+                </span>
+              )}
+            </div>
+            <span class="text-xs font-bold text-text-primary line-clamp-1 group-hover:text-neon-light transition-colors">
+              {project.title}
+            </span>
+            <span class="text-[10px] text-text-muted mt-0.5 line-clamp-1">
+              {project.tags[0]}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+)}
+
+<style>
+  /* 1. Fun Portal Warp Entrance Animation */
+  .portal-reveal-card {
+    opacity: 0;
+    transform: perspective(1000px) translateY(36px) scale(0.92) rotateX(8deg);
+    filter: blur(6px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1),
+      filter 0.6s ease;
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: transform, opacity, filter;
+  }
+
+  .portal-reveal-card.is-visible {
+    opacity: 1;
+    transform: perspective(1000px) translateY(0) scale(1) rotateX(0deg);
+    filter: blur(0);
+  }
+
+  /* 2. Random Slot Reroll Flip Animation */
+  @keyframes cardSlotFlip {
+    0% {
+      opacity: 0;
+      transform: perspective(1000px) rotateY(-18deg) scale(0.94) translateY(12px);
+    }
+    100% {
+      opacity: 1;
+      transform: perspective(1000px) rotateY(0deg) scale(1) translateY(0);
+    }
+  }
+
+  .animate-slot-flip {
+    animation: cardSlotFlip 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  /* 3. Creative Orbit Stage & Holographic Effects */
+  .perspective-stage {
+    perspective: 1200px;
+  }
+
+  .holo-stage-card {
+    transform-style: preserve-3d;
+    box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.6);
+    will-change: transform;
+  }
+
+  .holo-shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      115deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.06) 45%,
+      rgba(255, 255, 255, 0.14) 50%,
+      rgba(255, 255, 255, 0.06) 55%,
+      transparent 80%
+    );
+    transform: translateX(-100%);
+  }
+
+  @keyframes holoLoadSweep {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .portal-reveal-card.is-visible .holo-shine {
+    animation: holoLoadSweep 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards;
+  }
+
+  @keyframes stageSwapPulse {
+    0% {
+      opacity: 0.25;
+      transform: scale(0.97) translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .stage-swapping {
+    animation: stageSwapPulse 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .orbit-filter-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-secondary, #a1a1aa);
+  }
+
+  .orbit-filter-btn:hover,
+  .orbit-filter-btn.active {
+    background: rgba(139, 92, 246, 0.18);
+    border-color: rgba(167, 139, 250, 0.5);
+    color: #fff;
+  }
+
+  .orbit-cartridge.is-selected {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+  }
+
+  /* Ambient Floating Orbs */
+  .orbit-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: currentColor;
+    color: rgba(167, 139, 250, 0.35);
+    box-shadow: 0 0 12px currentColor;
+    animation: floatParticle var(--dur, 7s) ease-in-out infinite var(--delay, 0s);
+  }
+
+  @keyframes floatParticle {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+      opacity: 0.3;
+    }
+    50% {
+      transform: translateY(-22px) scale(1.4);
+      opacity: 0.85;
+    }
+  }
+</style>
+
+<script>
+  function initProjectShowcase() {
+    // 1. IntersectionObserver for Scroll Portal Reveal
+    const revealCards = document.querySelectorAll('.portal-reveal-card');
+    if (revealCards.length > 0) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+      );
+      revealCards.forEach((card) => observer.observe(card));
+    }
+
+    // 2. Single Random Project Mode Logic
+    const randomSlots = document.querySelectorAll<HTMLElement>('.random-project-slot');
+    const rerollBtn = document.getElementById('reroll-project-btn');
+    if (randomSlots.length > 0) {
+      let currentIdx = Math.floor(Math.random() * randomSlots.length);
+
+      const showRandomSlot = (idx: number) => {
+        randomSlots.forEach((slot, i) => {
+          if (i === idx) {
+            slot.classList.remove('hidden');
+            slot.classList.add('is-visible', 'animate-slot-flip');
+          } else {
+            slot.classList.add('hidden');
+            slot.classList.remove('animate-slot-flip');
+          }
+        });
+      };
+
+      showRandomSlot(currentIdx);
+
+      rerollBtn?.addEventListener('click', () => {
+        if (randomSlots.length <= 1) return;
+        let nextIdx = currentIdx;
+        while (nextIdx === currentIdx) {
+          nextIdx = Math.floor(Math.random() * randomSlots.length);
+        }
+        currentIdx = nextIdx;
+        showRandomSlot(currentIdx);
+      });
+    }
+
+    // 3. Creative Orbit Showcase Logic (Supports both 'creative-orbit' and 'featured-plus-random-catalog')
+    const orbitRoot = document.getElementById('creative-orbit-showcase');
+    if (orbitRoot) {
+      const orbitMode = orbitRoot.dataset.orbitMode || 'creative-orbit';
+      const cartridges = Array.from(orbitRoot.querySelectorAll<HTMLButtonElement>('.orbit-cartridge'));
+      const filterBtns = Array.from(orbitRoot.querySelectorAll<HTMLButtonElement>('.orbit-filter-btn'));
+      const rerollCatalogBtn = document.getElementById('orbit-reroll-catalog-btn');
+      const stageCard = document.getElementById('holo-active-card');
+      const stageContent = document.getElementById('holo-stage-content');
+      const stageThumb = document.getElementById('stage-thumb') as HTMLImageElement | null;
+      const stageCounter = document.getElementById('stage-counter');
+      const stageStatus = document.getElementById('stage-status-badge');
+      const stageTags = document.getElementById('stage-tags');
+      const stageTitle = document.getElementById('stage-title');
+      const stageDesc = document.getElementById('stage-desc');
+      const stageLink = document.getElementById('stage-link') as HTMLAnchorElement | null;
+      const stageLinkLabel = document.getElementById('stage-link-label');
+      const progressBar = document.getElementById('orbit-progress-bar');
+      const autoplayBtn = document.getElementById('orbit-autoplay-btn');
+      const prevBtn = document.getElementById('orbit-prev-btn');
+      const nextBtn = document.getElementById('orbit-next-btn');
+
+      let activeFilter = 'all';
+      let activeIndex = 0;
+      let isPlaying = true;
+      let progress = 0;
+      const CYCLE_MS = 5500;
+      const TICK_MS = 50;
+
+      stageContent?.addEventListener('animationend', () => {
+        stageContent.classList.remove('stage-swapping');
+      });
+
+      // Maintain DOM order for visible cartridges
+      const getVisibleCartridges = () =>
+        cartridges
+          .filter((btn) => !btn.classList.contains('hidden'))
+          .sort((a, b) => Number(a.style.order || 0) - Number(b.style.order || 0));
+
+      const selectProject = (btn: HTMLButtonElement) => {
+        const visible = getVisibleCartridges();
+        activeIndex = Math.max(0, visible.indexOf(btn));
+        progress = 0;
+        if (progressBar) progressBar.style.width = '0%';
+
+        cartridges.forEach((c) => {
+          c.classList.remove('is-selected', 'bg-neon/15', 'border-neon', 'shadow-lg', '-translate-y-1');
+          c.classList.add('bg-dark-card/70', 'border-dark-border');
+        });
+        btn.classList.add('is-selected', 'bg-neon/15', 'border-neon', 'shadow-lg', '-translate-y-1');
+        btn.classList.remove('bg-dark-card/70', 'border-dark-border');
+
+        if (stageContent) {
+          stageContent.classList.remove('stage-swapping');
+          void stageContent.offsetWidth;
+          stageContent.classList.add('stage-swapping');
+        }
+
+        if (stageThumb) {
+          stageThumb.src = btn.dataset.thumb || '';
+          stageThumb.alt = btn.dataset.title || '';
+        }
+        if (stageCounter) {
+          stageCounter.textContent = `${String(activeIndex + 1).padStart(2, '0')} / ${String(visible.length).padStart(2, '0')}`;
+        }
+        if (stageStatus) {
+          const st = btn.dataset.status;
+          stageStatus.textContent = st === 'coming-soon' ? 'Coming Soon' : st === 'active' ? 'Featured' : 'Minecraft';
+        }
+        if (stageTitle) stageTitle.textContent = btn.dataset.title || '';
+        if (stageDesc) stageDesc.textContent = btn.dataset.desc || '';
+        if (stageLink) {
+          stageLink.href = btn.dataset.link || '#';
+          if (btn.dataset.external === 'true') {
+            stageLink.target = '_blank';
+            stageLink.rel = 'noopener noreferrer';
+          } else {
+            stageLink.removeAttribute('target');
+            stageLink.removeAttribute('rel');
+          }
+        }
+        if (stageLinkLabel) stageLinkLabel.textContent = btn.dataset.linkLabel || 'View Project';
+
+        if (stageTags) {
+          const tags: string[] = JSON.parse(btn.dataset.tags || '[]');
+          stageTags.innerHTML = tags
+            .map(
+              (t) =>
+                `<span class="px-2.5 py-0.5 rounded-md text-xs font-medium bg-dark-surface text-text-secondary border border-dark-border">${t}</span>`
+            )
+            .join('');
+        }
+      };
+
+      // Randomize 3 catalog cartridges while keeping coming-soon & active always visible
+      let currentCatalogPicks: HTMLButtonElement[] = [];
+
+      const randomizeCatalogCartridges = (animate = false) => {
+        const featuredBtns = cartridges.filter(
+          (c) => c.dataset.status === 'coming-soon' || c.dataset.status === 'active'
+        );
+        const catalogBtns = cartridges.filter((c) => c.dataset.status === 'catalog');
+
+        featuredBtns.forEach((btn, idx) => {
+          btn.classList.remove('hidden');
+          btn.style.order = String(idx);
+        });
+
+        const count = Math.min(3, catalogBtns.length);
+        const shuffled = [...catalogBtns];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
+        let picked = shuffled.slice(0, count);
+        if (
+          animate &&
+          catalogBtns.length > 3 &&
+          picked.length === currentCatalogPicks.length &&
+          picked.every((b) => currentCatalogPicks.includes(b))
+        ) {
+          picked = shuffled.slice(1, count + 1);
+        }
+
+        currentCatalogPicks = picked;
+
+        catalogBtns.forEach((btn) => {
+          const pickIdx = picked.indexOf(btn);
+          if (pickIdx !== -1) {
+            btn.classList.remove('hidden');
+            btn.style.order = String(featuredBtns.length + pickIdx);
+            if (animate) {
+              btn.classList.remove('animate-slot-flip');
+              void btn.offsetWidth;
+              btn.classList.add('is-visible', 'animate-slot-flip');
+            }
+          } else {
+            btn.classList.add('hidden');
+            btn.classList.remove('animate-slot-flip');
+            btn.style.order = '';
+          }
+        });
+
+        const visible = getVisibleCartridges();
+        const currentlySelected = visible.find((b) => b.classList.contains('is-selected'));
+        if (currentlySelected) {
+          selectProject(currentlySelected);
+        } else if (visible.length > 0) {
+          selectProject(visible[0]);
+        }
+      };
+
+      if (orbitMode === 'featured-plus-random-catalog') {
+        randomizeCatalogCartridges(false);
+        rerollCatalogBtn?.addEventListener('click', () => {
+          randomizeCatalogCartridges(true);
+        });
+      }
+
+      const stepOrbit = (delta: number) => {
+        const visible = getVisibleCartridges();
+        if (visible.length === 0) return;
+        const next = (activeIndex + delta + visible.length) % visible.length;
+        selectProject(visible[next]);
+      };
+
+      cartridges.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selectProject(btn);
+        });
+      });
+
+      filterBtns.forEach((fBtn) => {
+        fBtn.addEventListener('click', () => {
+          activeFilter = fBtn.dataset.filter || 'all';
+          filterBtns.forEach((b) => b.classList.remove('active'));
+          fBtn.classList.add('active');
+
+          cartridges.forEach((c) => {
+            const cat = c.dataset.category || 'minecraft';
+            if (activeFilter === 'all' || cat === activeFilter) {
+              c.classList.remove('hidden');
+            } else {
+              c.classList.add('hidden');
+            }
+          });
+
+          const visible = getVisibleCartridges();
+          if (visible.length > 0) selectProject(visible[0]);
+        });
+      });
+
+      prevBtn?.addEventListener('click', () => stepOrbit(-1));
+      nextBtn?.addEventListener('click', () => stepOrbit(1));
+
+      autoplayBtn?.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        autoplayBtn.textContent = isPlaying ? 'Auto-Orbit: ON' : 'Auto-Orbit: OFF';
+      });
+
+      // Permanent Continuous 3D Tilt Loop (Live cursor tracking + gentle idle float)
+      let targetRotateX = 0;
+      let targetRotateY = 0;
+      let currentRotateX = 0;
+      let currentRotateY = 0;
+      let isCardHovered = false;
+      let animFrameId: number;
+
+      stageCard?.addEventListener('mouseenter', () => {
+        isCardHovered = true;
+      });
+
+      stageCard?.addEventListener('mousemove', (e) => {
+        const rect = stageCard.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        targetRotateY = x * 8;
+        targetRotateX = -y * 8;
+      });
+
+      stageCard?.addEventListener('mouseleave', () => {
+        isCardHovered = false;
+      });
+
+      const animateTilt = (time: number) => {
+        if (!stageCard || !document.body.contains(stageCard)) {
+          cancelAnimationFrame(animFrameId);
+          return;
+        }
+
+        if (!isCardHovered) {
+          targetRotateY = Math.sin(time * 0.0012) * 2.2;
+          targetRotateX = Math.cos(time * 0.0015) * 1.6;
+        }
+
+        currentRotateX += (targetRotateX - currentRotateX) * 0.1;
+        currentRotateY += (targetRotateY - currentRotateY) * 0.1;
+
+        stageCard.style.transform = `rotateX(${currentRotateX.toFixed(3)}deg) rotateY(${currentRotateY.toFixed(3)}deg)`;
+        animFrameId = requestAnimationFrame(animateTilt);
+      };
+
+      animFrameId = requestAnimationFrame(animateTilt);
+
+      let isHovered = false;
+      orbitRoot.addEventListener('mouseenter', () => (isHovered = true));
+      orbitRoot.addEventListener('mouseleave', () => (isHovered = false));
+
+      setInterval(() => {
+        if (!isPlaying || isHovered) return;
+        progress += (TICK_MS / CYCLE_MS) * 100;
+        if (progressBar) progressBar.style.width = `${Math.min(progress, 100)}%`;
+        if (progress >= 100) {
+          stepOrbit(1);
+        }
+      }, TICK_MS);
+    }
+  }
+
+  initProjectShowcase();
+  document.addEventListener('astro:after-swap', initProjectShowcase);
+</script>

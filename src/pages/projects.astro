@@ -5,11 +5,11 @@ import ProjectCard from '@components/ProjectCard.astro';
 import projects from '@data/projects.json';
 import config from '@data/site-config.json';
 
-const activeProjects = projects.filter((p) => p.status === 'active' || p.status === 'coming-soon');
-const legacyProjects = projects.filter((p) => p.status === 'legacy');
+const indieProjects = projects.filter((p) => p.category === 'indie');
+const minecraftProjects = projects.filter((p) => p.category === 'minecraft');
 ---
 
-<BaseLayout title="Projects" description={`Game projects by ${config.siteName} — current indie games and legacy Minecraft addons.`}>
+<BaseLayout title="Projects" description={`Projects by ${config.siteName} — original indie games and active Minecraft Java & Bedrock creations.`}>
   <div class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
     <!-- Page Title -->
     <div class="text-center mb-16">
@@ -17,19 +17,19 @@ const legacyProjects = projects.filter((p) => p.status === 'legacy');
         <span class="neon-glow">Projects</span>
       </h1>
       <p class="text-text-muted text-lg max-w-2xl mx-auto">
-        From Minecraft Bedrock addons to new indie game adventures — explore what SyKoNetwork has built.
+        Original indie games alongside actively updated mods and addons for Minecraft Java and Bedrock.
       </p>
     </div>
 
-    <!-- Current Projects -->
+    <!-- Indie Games -->
     <section class="mb-20">
       <SectionHeader
-        title="Current Projects"
-        subtitle="New indie game projects in development"
+        title="Indie Games"
+        subtitle="Original standalone games in development and playable web demos"
       />
-      {activeProjects.length > 0 ? (
+      {indieProjects.length > 0 ? (
         <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
-          {activeProjects.map((project) => (
+          {indieProjects.map((project) => (
             <ProjectCard project={project} />
           ))}
         </div>
@@ -39,20 +39,19 @@ const legacyProjects = projects.filter((p) => p.status === 'legacy');
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
           </svg>
           <p class="text-text-muted text-lg">Something new is brewing...</p>
-          <p class="text-text-muted text-sm mt-2">New non-Minecraft projects are in the works. Follow on <a href={config.patreonUrl} class="text-neon-light hover:text-neon-glow">Patreon</a> for announcements!</p>
+          <p class="text-text-muted text-sm mt-2">New standalone projects are in the works. Follow on <a href={config.patreonUrl} class="text-neon-light hover:text-neon-glow">Patreon</a> for announcements!</p>
         </div>
       )}
     </section>
 
-    <!-- Legacy / Minecraft Archive -->
-    <section class="bg-legacy-bg/30 rounded-2xl p-6 sm:p-10 border border-legacy-border/30">
+    <!-- Minecraft Java & Bedrock -->
+    <section>
       <SectionHeader
-        title="Legacy / Minecraft Archive"
-        subtitle="These Minecraft Bedrock addons are no longer actively developed but remain available for the community."
-        variant="legacy"
+        title="Minecraft Java & Bedrock"
+        subtitle="Addons, mods, and ongoing content updates for both editions of Minecraft"
       />
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
-        {legacyProjects.map((project) => (
+        {minecraftProjects.map((project) => (
           <ProjectCard project={project} />
         ))}
       </div>
